@@ -3,7 +3,7 @@ import hydra
 import logging
 import os
 
-import cloud_from_random as cloud
+import pointnet.cloud_from_random as cloud
 import config as cf
 
 @hydra.main(config_path=None, config_name='simulate', version_base='1.1')
