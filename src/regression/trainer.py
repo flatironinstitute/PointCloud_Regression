@@ -11,9 +11,9 @@ import pytorch_lightning as pl
 import dataclasses
 import config as cf
 
-from pointnet.model import FeedForward
-import pointnet.metric as M
-from pointnet.dataset import SimulatedDataset
+from model import FeedForward
+import metric as M
+from dataset import SimulatedDataset
 
 class MLPTrainer(pl.LightningModule):
     hparams: cf.FeedForwardTrainConfig

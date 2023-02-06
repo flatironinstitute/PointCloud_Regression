@@ -2,7 +2,7 @@ import dataclasses
 from typing import Optional, Tuple, List
 import omegaconf
 
-from pointnet.model import FeedForward
+from model import FeedForward
 
 @dataclasses.dataclass
 class TrainingDataConfig:
