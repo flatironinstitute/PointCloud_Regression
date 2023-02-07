@@ -109,7 +109,7 @@ def main(config: cf.FeedForwardTrainConfig):
     trainer.fit(model,dm)
 
     if trainer.is_global_zero:
-        logger.info(f'Finished training. Final loss: {trainer.logged_metrics["train/loss"]}')
+        logger.info(f'Finished training. Final loss: {trainer.logged_metrics["train/mse_loss"]}')
         logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/chordal_square"]}')
     
 
