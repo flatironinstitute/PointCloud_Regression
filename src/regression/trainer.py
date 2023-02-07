@@ -29,28 +29,29 @@ class MLPTrainer(pl.LightningModule):
         return self.feed_forward(x)
 
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        mse = M.mean_square(pred, quat)
-        self.log('train/loss', loss)
-        self.log('train/mse', mse)
+        chordal = M.chordal_square_loss(pred, quat)
+        self.log('train/mse_loss', loss)
+        self.log('train/chordal_square', chordal)
 
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
-        loss = M.chordal_square_loss(pred, quat)
+        #loss = M.chordal_square_loss(pred, quat)
+        loss = M.mean_square(pred, quat)
         self.training_log(batch, pred, quat, loss, batch_idx)
         return loss
 
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        mse = M.mean_square(pred, quat)
-        self.log('val/loss', loss)
-        self.log('val/mse', mse)
+        chordal = M.chordal_square_loss(pred, quat)
+        self.log('val/mse_loss', loss)
+        self.log('val/chordal_square', chordal)
 
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
-        loss = M.chordal_square_loss(pred, quat)
+        loss = M.mean_square(pred, quat)
         self.validation_log(batch, pred, quat, loss, batch_idx)
         return loss
 
@@ -109,7 +110,7 @@ def main(config: cf.FeedForwardTrainConfig):
 
     if trainer.is_global_zero:
         logger.info(f'Finished training. Final loss: {trainer.logged_metrics["train/loss"]}')
-        logger.info(f'Finished training. Final MSE: {trainer.logged_metrics["train/mse"]}')
+        logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/chordal_square"]}')
     
 
 if __name__ == '__main__':
