@@ -43,4 +43,7 @@ class FeedForwardTrainConfig:
     device: str = 'cpu'
     num_gpus: int = 1
     log_every: int = 1
-    
+
+@dataclasses.dataclass
+class TestConfig(FeedForwardTrainConfig):
+    chkpt_path: str = omegaconf.MISSING 
