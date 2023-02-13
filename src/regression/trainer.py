@@ -9,11 +9,11 @@ import torch.utils.tensorboard
 
 import pytorch_lightning as pl
 import dataclasses
-import config as cf
+import regression.config as cf
 
-from model import FeedForward
-import metric as M
-from dataset import SimulatedDataset
+from regression.model import FeedForward
+import regression.metric as M
+from regression.dataset import SimulatedDataset
 
 class MLPTrainer(pl.LightningModule):
     hparams: cf.FeedForwardTrainConfig

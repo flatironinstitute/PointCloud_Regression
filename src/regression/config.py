@@ -2,8 +2,6 @@ import dataclasses
 from typing import Optional, Tuple, List
 import omegaconf
 
-from model import FeedForward
-
 @dataclasses.dataclass
 class TrainingDataConfig:
     """configuration of data loading
