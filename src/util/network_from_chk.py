@@ -2,78 +2,75 @@ import torch
 import numpy as np
 import pytorch_lightning as pl
 import torch.utils.data
-import hydra
-import dataclasses
+import argparse
+import matplotlib.pylab as plt
 
 import regression.trainer as tr
 import regression.dataset as ds
 import regression.config as cf
 import regression.metric as M
+import util.optimal_svd as svd
 
-from scipy.spatial.transform import Rotation as R
-
-def readCheckPoint(path):
+def read_check_point(path: str):
     model = tr.MLPTrainer.load_from_checkpoint(path)
     model.eval()
     return model
 
-def direct_SVD(cloud: torch.Tensor) -> np.ndarray:
+def forward_loaded_model(loaded_model, cloud: torch.Tensor) -> torch.Tensor:
+    #cloud data are load and convert from numpy load
+    m, _ = cloud.dim
+    pred_list = torch.empty(m, 4)
+    for i in range(len(cloud)):
+        curr_quat = loaded_model(cloud[i])
+        pred_list[i] = curr_quat
+
+    return pred_list
+
+def load_npz(file_path: str) -> torch.Tensor:
+    with np.load(file_path) as data:
+        cloud = torch.as_tensor(data["cloud"],dtype=torch.float32)
+        quat  = torch.as_tensor(data["quat"],dtype=torch.float32)
+
+    return cloud, quat
+
+def get_svd_quat(cloud: torch.Tensor) -> torch.Tensor:
     """
-    calculate the relative rotation of a pair of cloud
-    via direct optimal method by SVD decomposition
+    calculate list of quat from optimal SVD method
+    return tensor for angle diff calculation
     """
-    X = cloud[0]
-    Y = cloud[1] #H or E = (x-x_0)(y-y_0)
-    X_T = np.transpose(X)
-    E = np.dot(X_T,Y)
-    u, s, vh = np.linalg.svd(E, full_matrices=True)
-    D = np.identity(3)
-    vut = np.dot(np.transpose(vh),np.transpose(u))
-    D_entry = np.linalg.det(vut)
-    D[-1,-1] = np.sign(D_entry)
-    R_opt_intermediate = np.dot(np.transpose(vh),D)
-    R_opt = np.dot(R_opt_intermediate,np.transpose(u))
-    r = R.from_matrix(R_opt)
-        
-    return r.as_quat()
+    m, _ = cloud.dim
+    quat_list = torch.empty(m, 4)
+    for i in range(len(cloud)):
+        curr_quat = svd.direct_SVD(cloud[i])
+        quat_list[i] = curr_quat
 
-class TestDataModule(pl.LightningDataModule):
-    def __init__(self, config: cf.TrainingDataConfig, batch_size: int) -> None:
-        super().__init__()
-        self.config = config
-        self.batch_size = batch_size
+    return quat_list
 
-        self.ds = ds.SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
+def get_batch_angle_diff(cloud: torch.Tensor, pred_quat: np.ndarray, true_quat: np.ndarray):
+    svd_quat = get_svd_quat(cloud)
+    svd_list = M.quat_angle_diff(svd_quat, true_quat, reduce=False)
+    net_list = M.quat_angle_diff(pred_quat, true_quat, reduce=False)
+    return svd_list, net_list #two torch.Tensors
 
-        self.ds_test = None
+def generate_fig(svd_list:torch.Tensor, net_list:torch.Tensor):
+    fig = plt.figure(figsize=(10,5))
+    plt.scatter(np.arange(len(svd_list)),svd_list)
+    plt.scatter(np.arange(len(net_list)),net_list)
+    return fig
 
-    def setup(self, stage: str = None) -> None:
-        # Define steps that should be done on 
-        # every GPU, like splitting data, applying
-        # transforms etc.
-        if self.config.limit is not None:
-            limit = min(self.config.limit, len(self.ds))
-            self.ds_test, _ = torch.utils.data.random_split(self.ds, [limit, len(self.ds) - limit])
+def main():
+    parser = argparse.ArgumentParser(description = 'load cloud from npz')
+    parser.add_argument('npz_path', type = str, help = 'path of npz file')
+    parser.add_argument('chkpt_path', type = str, help = 'path of lightning check point')
 
-    def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.ds_test, self.batch_size, shuffle=True, num_workers=self.config.num_data_workers)
+    args = parser.parse_args()
 
-@hydra.main(config_path=None, config_name='test', version_base='1.1') 
-def main(config: cf.TestConfig):
-    data_config = config.data
-    load_path = config.chkpt_path
-    print("current config ",config)
-    print("test path ", load_path)
-    dm = TestDataModule(data_config, config.batch_size)
-    model = tr.MLPTrainer.load_from_checkpoint(load_path)
+    check_point = args.chkpt_path
+    cloud_data  = args.npz_path
 
-    trainer.test(model,dm)
+    pointnet_model = read_check_point(check_point)
+    cloud, true_quat = load_npz(cloud_data)
+    pred_quat = forward_loaded_model(pointnet_model, cloud)
 
-if __name__ == '__main__':
-    from hydra.core.config_store import ConfigStore
-    cs = ConfigStore()
-    cs.store('test', node=cf.TestConfig)
-    main()
-
-
+    list_svd_diff, list_net_diff = get_batch_angle_diff(cloud, pred_quat, true_quat)
 
