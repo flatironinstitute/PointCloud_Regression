@@ -62,7 +62,8 @@ class TestDataModule(pl.LightningDataModule):
 def main(config: cf.TestConfig):
     data_config = config.data
     load_path = config.chkpt_path
-    print(load_path)
+    print("current config ",config)
+    print("test path ", load_path)
     dm = TestDataModule(data_config, config.batch_size)
     model = tr.MLPTrainer.load_from_checkpoint(load_path)
 
