@@ -61,8 +61,10 @@ class TestDataModule(pl.LightningDataModule):
 @hydra.main(config_path=None, config_name='test', version_base='1.1') 
 def main(config: cf.TestConfig):
     data_config = config.data
+    load_path = config.chkpt_path
+    print(load_path)
     dm = TestDataModule(data_config, config.batch_size)
-    model = tr.MLPTrainer.load_from_checkpoint(config.chkpt_path)
+    model = tr.MLPTrainer.load_from_checkpoint(load_path)
 
     trainer.test(model,dm)
 
