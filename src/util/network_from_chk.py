@@ -19,8 +19,8 @@ def read_check_point(path: str):
 def forward_loaded_model(loaded_model, cloud: torch.Tensor) -> torch.Tensor:
     #cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
-    m, _ = cloud.shape
-    pred_list = torch.empty(m, 4)
+    b, _, _, _ = cloud.shape
+    pred_list = torch.empty(b, 4)
     for i in range(len(cloud)):
         curr_quat = loaded_model(cloud[i])
         pred_list[i] = curr_quat
