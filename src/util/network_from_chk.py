@@ -39,8 +39,8 @@ def get_svd_quat(cloud: torch.Tensor) -> torch.Tensor:
     calculate list of quat from optimal SVD method
     return tensor for angle diff calculation
     """
-    m, _ = cloud.dim
-    quat_list = torch.empty(m, 4)
+    b, _, _, _ = cloud.shape
+    quat_list = torch.empty(b, 4)
     for i in range(len(cloud)):
         curr_quat = svd.direct_SVD(cloud[i])
         quat_list[i] = curr_quat
