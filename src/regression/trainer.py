@@ -10,7 +10,7 @@ import torch.utils.tensorboard
 import pytorch_lightning as pl
 import dataclasses
 import regression.config as cf
-
+print('we could load regression.config')
 from regression.model import FeedForward
 import regression.metric as M
 from regression.dataset import SimulatedDataset
@@ -21,6 +21,7 @@ class MLPTrainer(pl.LightningModule):
     def __init__(self, config: cf.FeedForwardTrainConfig) -> None:
         super().__init__()
         self.save_hyperparameters(config)
+        print('this is test for config')
         self.feed_forward = FeedForward(config.model_config.num_hidden,
                         config.model_config.hidden_size, 
                         config.model_config.num_points)   
