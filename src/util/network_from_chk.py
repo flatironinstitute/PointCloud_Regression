@@ -53,24 +53,44 @@ def get_batch_angle_diff(cloud: torch.Tensor, pred_quat: np.ndarray, true_quat: 
     return svd_list, net_list #two torch.Tensors
 
 def generate_fig(svd_list:torch.Tensor, net_list:torch.Tensor):
-    fig = plt.figure(figsize=(10,5))
-    plt.scatter(np.arange(len(svd_list)),svd_list)
-    plt.scatter(np.arange(len(net_list)),net_list)
+    n = np.arange(len(svd_list))
+    m = np.arange(len(net_list))
+    
+    fig, ax = plt.subplots()
+
+    ax.plot(n, svd_list, 'ro')
+    ax.plot(m, net_list, 'b^')
+    
     return fig
 
+def generate_dict(svd_list:torch.Tensor, net_list:torch.Tensor):
+    save_data = {}
+    save_data[str(svd_list)] = svd_list
+    save_data[str(net_list)] = net_list
+    return save_data
+
 def main():
-    parser = argparse.ArgumentParser(description = 'load cloud from npz')
+    parser = argparse.ArgumentParser(description = 'load cloud from npz and generate figure')
     parser.add_argument('npz_path', type = str, help = 'path of npz file')
     parser.add_argument('chkpt_path', type = str, help = 'path of lightning check point')
+    parser.add_argument('output_path', type = str, help = 'path of save figures and text')
 
     args = parser.parse_args()
 
     check_point = args.chkpt_path
     cloud_data  = args.npz_path
+    save_path = args.output_path
 
     pointnet_model = read_check_point(check_point)
     cloud, true_quat = load_npz(cloud_data)
     pred_quat = forward_loaded_model(pointnet_model, cloud)
 
     list_svd_diff, list_net_diff = get_batch_angle_diff(cloud, pred_quat, true_quat)
+    delta_q_fig = generate_fig(list_svd_diff, list_net_diff)
+    delta_q_fig.savefig(save_path+"angle_diff.png")
 
+    delta_q_dict = generate_dict(list_svd_diff, list_net_diff)
+    np.savez(save_path+"angle_diff.npz", **delta_q_dict)
+
+if __name__ == '__main__':
+    main()
