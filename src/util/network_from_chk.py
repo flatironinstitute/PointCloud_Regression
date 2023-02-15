@@ -59,8 +59,8 @@ def generate_fig(svd_list:torch.Tensor, net_list:torch.Tensor):
     
     fig, ax = plt.subplots()
 
-    ax.plot(n, svd_list, 'ro')
-    ax.plot(m, net_list, 'b^')
+    ax.plot(n, svd_list.detach().numpy(), 'ro')
+    ax.plot(m, net_list.detach().numpy(), 'b^')
     
     return fig
 
