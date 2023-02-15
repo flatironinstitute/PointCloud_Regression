@@ -22,7 +22,7 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor) -> torch.Tensor:
     b, _, _, _ = cloud.shape
     pred_list = torch.empty(b, 4)
     for i in range(len(cloud)):
-        curr_quat = loaded_model(cloud[i])
+        curr_quat = loaded_model(cloud[i].view(-1))
         pred_list[i] = curr_quat
 
     return pred_list
