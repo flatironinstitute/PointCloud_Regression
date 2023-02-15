@@ -42,7 +42,7 @@ def get_svd_quat(cloud: torch.Tensor) -> torch.Tensor:
     b, _, _, _ = cloud.shape
     quat_list = torch.empty(b, 4)
     for i in range(len(cloud)):
-        curr_quat = svd.direct_SVD(cloud[i])
+        curr_quat = torch.as_tensor(svd.direct_SVD(cloud[i]),dtype=torch.float32)
         quat_list[i] = curr_quat
 
     return quat_list
