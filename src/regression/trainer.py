@@ -1,6 +1,7 @@
 import numpy as np
 import hydra
 import logging
+import omegaconf
 
 import torch
 import torch.nn as nn
@@ -10,7 +11,6 @@ import torch.utils.tensorboard
 import pytorch_lightning as pl
 import dataclasses
 import regression.config as cf
-print('we could load regression.config')
 from regression.model import FeedForward
 import regression.metric as M
 from regression.dataset import SimulatedDataset
@@ -20,6 +20,12 @@ class MLPTrainer(pl.LightningModule):
 
     def __init__(self, config: cf.FeedForwardTrainConfig) -> None:
         super().__init__()
+        #The LightningModule automatically save all the hyperparameters 
+        #passed to init simply by calling self.save_hyperparameters()
+        #with config, we need to structured it before call save_... ???
+        if not omegaconf.OmegaConf.is_config(config):
+            config = omegaconf.OmegaConf.structured(config)
+
         self.save_hyperparameters(config)
         print('this is test for config')
         self.feed_forward = FeedForward(config.model_config.num_hidden,
