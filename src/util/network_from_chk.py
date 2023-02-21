@@ -66,8 +66,8 @@ def generate_fig(svd_list:torch.Tensor, net_list:torch.Tensor):
 
 def generate_dict(svd_list:torch.Tensor, net_list:torch.Tensor):
     save_data = {}
-    save_data[str(svd_list)] = svd_list
-    save_data[str(net_list)] = net_list
+    save_data["svd_list"] = svd_list.detach().numpy()
+    save_data["net_list"] = net_list.detach().numpy()
     return save_data
 
 def main():
