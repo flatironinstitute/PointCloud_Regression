@@ -30,6 +30,7 @@ class NetworkConfig:
     num_out: int = 4
     hidden_size: int = 1024
     num_hidden: int = 2
+    adj_option: bool = False
 
 @dataclasses.dataclass
 class FeedForwardTrainConfig:

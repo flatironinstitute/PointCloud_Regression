@@ -27,10 +27,10 @@ class MLPTrainer(pl.LightningModule):
             config = omegaconf.OmegaConf.structured(config)
 
         self.save_hyperparameters(config)
-        print('this is test for config')
         self.feed_forward = FeedForward(config.model_config.num_hidden,
                         config.model_config.hidden_size, 
-                        config.model_config.num_points)   
+                        config.model_config.num_points,
+                        config.model_config.adj_option)   
 
     def forward(self, x):
         return self.feed_forward(x)

@@ -45,3 +45,18 @@ def chordal_square_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce 
 def mean_square(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
     mse = torch.nn.MSELoss()
     return mse(q_predict, q_target)
+
+def frobenius_norm_loss(adj_mat_src: torch.Tensor, adj_mat_trg: torch.Tensor, reduce = True) -> torch.Tensor:
+    """
+    get the Frobenius norm of batches of rotation between
+    source and the target adjugate matrix
+    both should be batches of 4x4 matrix
+    """
+    assert(adj_mat_src.shape == adj_mat_trg.shape)
+
+    if adj_mat_src.dim() < 3:
+        adj_mat_src.unsqueeze(dim = 0)
+        adj_mat_trg.unsqueeze(dim = 0)
+    losses = (adj_mat_src - adj_mat_trg).norm(dim = [1,2])
+    loss = losses.mean() if reduce else losses
+    return loss
