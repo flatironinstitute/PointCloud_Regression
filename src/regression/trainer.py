@@ -43,9 +43,9 @@ class MLPTrainer(pl.LightningModule):
             pred_quat = A.batch_adj_to_quat(pred)
             mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('train/mse', mse)
+            self.log('train/mean_square', mse)
         else:
-            self.log('train/mse_loss', loss)
+            self.log('train/mean_square', loss)
             chordal = M.chordal_square_loss(pred, quat)
         self.log('train/chordal_square', chordal)
 
@@ -71,9 +71,9 @@ class MLPTrainer(pl.LightningModule):
             pred_quat = A.batch_adj_to_quat(pred)
             mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('val/mse', mse)
+            self.log('val/mean_square', mse)
         else:
-            self.log('val/mse_loss', loss)
+            self.log('val/mean_square', loss)
             chordal = M.chordal_square_loss(pred, quat)
         self.log('val/chordal_square', chordal)
 
@@ -145,8 +145,10 @@ def main(config: cf.FeedForwardTrainConfig):
     trainer.fit(model,dm)
 
     if trainer.is_global_zero:
-        logger.info(f'Finished training. Final loss: {trainer.logged_metrics["train/mse_loss"]}')
+        logger.info(f'Finished training. Final mse: {trainer.logged_metrics["train/mean_square"]}')
         logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        if config.model_config.adj_option:
+            logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/frob_loss"]}')
     
 
 if __name__ == '__main__':
