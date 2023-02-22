@@ -35,8 +35,8 @@ def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
     return torch.as_tensor(q_pred_order)
 
 def batch_adj_to_quat(adj_batch: torch.Tensor) -> torch.Tensor:
-    b, _ = adj_batch.shape
-    q_batch = torch.empty(b,4,4)
+    b, _, _ = adj_batch.shape
+    q_batch = torch.empty(b,4)
 
     for i in range(len(adj_batch)):
         curr_q = adj_to_quat(adj_batch[i])
