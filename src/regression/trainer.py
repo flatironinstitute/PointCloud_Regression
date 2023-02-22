@@ -38,13 +38,15 @@ class MLPTrainer(pl.LightningModule):
         return self.feed_forward(x)
 
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        chordal = M.chordal_square_loss(pred, quat)
-        if self.cf.model_config.adj_option:
+        if self.cf.model_config.adj_option:#if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
-            mse = M.mean_square(pred, quat)
+            pred_quat = A.batch_adj_to_quat(pred)
+            mse = M.mean_square(pred_quat, quat)
+            chordal = M.chordal_square_loss(pred_quat, quat)
             self.log('train/mse', mse)
         else:
             self.log('train/mse_loss', loss)
+            chordal = M.chordal_square_loss(pred, quat)
         self.log('train/chordal_square', chordal)
 
     def training_step(self, batch, batch_idx: int):
@@ -55,21 +57,24 @@ class MLPTrainer(pl.LightningModule):
         #loss can also wrap up separately for different options
         if self.cf.model_config.adj_option:
             adj_pred = A.vec_to_adj(pred)
-            adj_quat = A.quat_to_adj(quat)
+            adj_quat = A.batch_quat_to_adj(quat)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+            self.training_log(batch, adj_pred, quat, loss, batch_idx)
         else:
             loss = M.mean_square(pred, quat)
-        self.training_log(batch, pred, quat, loss, batch_idx)
+            self.training_log(batch, pred, quat, loss, batch_idx)
         return loss
 
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        chordal = M.chordal_square_loss(pred, quat)
         if self.cf.model_config.adj_option:
             self.log('val/frob_loss', loss)
+            pred_quat = A.batch_adj_to_quat(pred)
             mse = M.mean_square(pred, quat)
+            chordal = M.chordal_square_loss(pred_quat, quat)
             self.log('val/mse', mse)
         else:
             self.log('val/mse_loss', loss)
+            chordal = M.chordal_square_loss(pred, quat)
         self.log('val/chordal_square', chordal)
 
     def validation_step(self, batch, batch_idx: int):
@@ -78,11 +83,12 @@ class MLPTrainer(pl.LightningModule):
 
         if self.cf.model_config.adj_option:
             adj_pred = A.vec_to_adj(pred)
-            adj_quat = A.quat_to_adj(quat)
+            adj_quat = A.batch_quat_to_adj(quat)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+            self.validation_log(batch, adj_pred, quat, loss, batch_idx)
         else:
             loss = M.mean_square(pred, quat)
-        self.validation_log(batch, pred, quat, loss, batch_idx)
+            self.validation_log(batch, pred, quat, loss, batch_idx)
         return loss
 
     def configure_optimizers(self):
