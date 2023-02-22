@@ -13,6 +13,7 @@ import dataclasses
 import regression.config as cf
 from regression.model import FeedForward
 import regression.metric as M
+import regression.adj_util as A
 from regression.dataset import SimulatedDataset
 
 class MLPTrainer(pl.LightningModule):
@@ -30,14 +31,20 @@ class MLPTrainer(pl.LightningModule):
         self.feed_forward = FeedForward(config.model_config.num_hidden,
                         config.model_config.hidden_size, 
                         config.model_config.num_points,
-                        config.model_config.adj_option)   
+                        config.model_config.adj_option)  
+        self.cf = config 
 
     def forward(self, x):
         return self.feed_forward(x)
 
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         chordal = M.chordal_square_loss(pred, quat)
-        self.log('train/mse_loss', loss)
+        if self.cf.model_config.adj_option:
+            self.log('train/frob_loss', loss)
+            mse = M.mean_square(pred, quat)
+            self.log('train/mse', mse)
+        else:
+            self.log('train/mse_loss', loss)
         self.log('train/chordal_square', chordal)
 
     def training_step(self, batch, batch_idx: int):
@@ -45,20 +52,36 @@ class MLPTrainer(pl.LightningModule):
         pred = self(cloud)
 
         #loss = M.chordal_square_loss(pred, quat)
-        loss = M.mean_square(pred, quat)
+        #loss can also wrap up separately for different options
+        if self.cf.model_config.adj_option:
+            adj_pred = A.vec_to_adj(pred)
+            adj_quat = A.quat_to_adj(quat)
+            loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+        else:
+            loss = M.mean_square(pred, quat)
         self.training_log(batch, pred, quat, loss, batch_idx)
         return loss
 
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         chordal = M.chordal_square_loss(pred, quat)
-        self.log('val/mse_loss', loss)
+        if self.cf.model_config.adj_option:
+            self.log('val/frob_loss', loss)
+            mse = M.mean_square(pred, quat)
+            self.log('val/mse', mse)
+        else:
+            self.log('val/mse_loss', loss)
         self.log('val/chordal_square', chordal)
 
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
-        loss = M.mean_square(pred, quat)
+        if self.cf.model_config.adj_option:
+            adj_pred = A.vec_to_adj(pred)
+            adj_quat = A.quat_to_adj(quat)
+            loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+        else:
+            loss = M.mean_square(pred, quat)
         self.validation_log(batch, pred, quat, loss, batch_idx)
         return loss
 
