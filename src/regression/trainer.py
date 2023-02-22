@@ -69,7 +69,7 @@ class MLPTrainer(pl.LightningModule):
         if self.cf.model_config.adj_option:
             self.log('val/frob_loss', loss)
             pred_quat = A.batch_adj_to_quat(pred)
-            mse = M.mean_square(pred, quat)
+            mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
             self.log('val/mse', mse)
         else:
