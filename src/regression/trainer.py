@@ -96,7 +96,7 @@ class PointNetTrainer(pl.LightningModule):
         return optim
 
     
-class MLPDataModule(pl.LightningDataModule):
+class PointNetDataModule(pl.LightningDataModule):
     def __init__(self, config: cf.TrainingDataConfig, batch_size: int) -> None:
         super().__init__()
         self.config = config
@@ -130,7 +130,7 @@ class MLPDataModule(pl.LightningDataModule):
 
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1' ) 
-def main(config: cf.FeedForwardTrainConfig):
+def main(config: cf.PointNetTrainConfig):
     logger = logging.getLogger(__name__)
     trainer = pl.Trainer(
         accelerator=config.device, 
@@ -139,8 +139,8 @@ def main(config: cf.FeedForwardTrainConfig):
         max_epochs=config.num_epochs)
     
     data_config = config.data
-    dm = MLPDataModule(data_config, config.batch_size)
-    model = MLPTrainer(config)
+    dm = PointNetDataModule(data_config, config.batch_size)
+    model = PointNetTrainer(config)
 
     trainer.fit(model,dm)
 
@@ -154,5 +154,5 @@ def main(config: cf.FeedForwardTrainConfig):
 if __name__ == '__main__':
     from hydra.core.config_store import ConfigStore
     cs = ConfigStore()
-    cs.store('train', node=cf.FeedForwardTrainConfig)
+    cs.store('train', node=cf.PointNetTrainConfig)
     main()

@@ -44,5 +44,5 @@ class PointNetTrainConfig:
     log_every: int = 1
 
 @dataclasses.dataclass
-class TestConfig(FeedForwardTrainConfig):
+class TestConfig(PointNetTrainConfig):
     chkpt_path: str = omegaconf.MISSING 
