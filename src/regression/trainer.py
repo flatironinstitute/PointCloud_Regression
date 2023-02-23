@@ -11,15 +11,15 @@ import torch.utils.tensorboard
 import pytorch_lightning as pl
 import dataclasses
 import regression.config as cf
-from regression.model import FeedForward
+from regression.model import PointNet
 import regression.metric as M
 import regression.adj_util as A
 from regression.dataset import SimulatedDataset
 
-class MLPTrainer(pl.LightningModule):
-    hparams: cf.FeedForwardTrainConfig
+class PointNetTrainer(pl.LightningModule):
+    hparams: cf.PointNetTrainConfig
 
-    def __init__(self, config: cf.FeedForwardTrainConfig) -> None:
+    def __init__(self, config: cf.PointNetTrainConfig) -> None:
         super().__init__()
         #The LightningModule automatically save all the hyperparameters 
         #passed to init simply by calling self.save_hyperparameters()
@@ -28,14 +28,14 @@ class MLPTrainer(pl.LightningModule):
             config = omegaconf.OmegaConf.structured(config)
 
         self.save_hyperparameters(config)
-        self.feed_forward = FeedForward(config.model_config.num_hidden,
-                        config.model_config.hidden_size, 
-                        config.model_config.num_points,
-                        config.model_config.adj_option)  
+        self.point_net = PointNet(config.model_config.hidden_size, 
+                                    config.model_config.num_points,
+                                    config.model_config.adj_option,
+                                    config.model_config.batch_norm)  
         self.cf = config 
 
     def forward(self, x):
-        return self.feed_forward(x)
+        return self.point_net(x)
 
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         if self.cf.model_config.adj_option:#if output was 10 dim, pass the converted adj to log

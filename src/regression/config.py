@@ -29,11 +29,11 @@ class NetworkConfig:
     num_points: int = 100
     num_out: int = 4
     hidden_size: int = 1024
-    num_hidden: int = 2
     adj_option: bool = False
+    batch_norm: bool = False
 
 @dataclasses.dataclass
-class FeedForwardTrainConfig:
+class PointNetTrainConfig:
     data: TrainingDataConfig = TrainingDataConfig()
     model_config: NetworkConfig = NetworkConfig()
     optim: OptimConfig = OptimConfig()

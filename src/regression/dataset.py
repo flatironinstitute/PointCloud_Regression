@@ -17,7 +17,7 @@ class SimulatedDataset(Dataset):
         return len(self.cloud)
 
     def __getitem__(self, index: int):
-        curr_cloud = self.cloud[index].view(-1)
+        curr_cloud = self.cloud[index]#.view(-1), option for flatten before model
         curr_quat = self.quat[index]
         return curr_cloud, curr_quat
 
