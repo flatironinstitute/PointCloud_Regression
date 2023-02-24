@@ -54,6 +54,7 @@ def get_batch_angle_diff(cloud: torch.Tensor, pred_quat: np.ndarray, true_quat: 
     return svd_list, net_list #two torch.Tensors
 
 def generate_fig(svd_list:torch.Tensor, net_list:torch.Tensor):
+    #need wrap up more lines; need add title and axes
     n = np.arange(len(svd_list))
     m = np.arange(len(net_list))
     
