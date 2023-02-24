@@ -43,17 +43,16 @@ class PointNetTrainer(pl.LightningModule):
             pred_quat = A.batch_adj_to_quat(pred)
             mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('train/mean_square', mse)
+            self.log('train/chordal_square', chordal)
         else:
-            self.log('train/mean_square', loss)
-            chordal = M.chordal_square_loss(pred, quat)
-        self.log('train/chordal_square', chordal)
+            self.log('train/chordal_square', loss)
+            mse = M.mean_square(pred, quat)
+        self.log('train/mean_square', mse)
 
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
-        #loss = M.chordal_square_loss(pred, quat)
         #loss can also wrap up separately for different options
         if self.cf.model_config.adj_option:
             adj_pred = A.vec_to_adj(pred)
@@ -61,7 +60,7 @@ class PointNetTrainer(pl.LightningModule):
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         else:
-            loss = M.mean_square(pred, quat)
+            loss = M.chordal_square_loss(pred, quat)
             self.training_log(batch, pred, quat, loss, batch_idx)
         return loss
 
@@ -71,11 +70,11 @@ class PointNetTrainer(pl.LightningModule):
             pred_quat = A.batch_adj_to_quat(pred)
             mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('val/mean_square', mse)
+            self.log('val/chordal_square', chordal)
         else:
-            self.log('val/mean_square', loss)
-            chordal = M.chordal_square_loss(pred, quat)
-        self.log('val/chordal_square', chordal)
+            self.log('val/chordal_square', loss)
+            mse = M.mean_square(pred, quat)
+        self.log('val/mean_square', mse)
 
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
@@ -87,7 +86,7 @@ class PointNetTrainer(pl.LightningModule):
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.validation_log(batch, adj_pred, quat, loss, batch_idx)
         else:
-            loss = M.mean_square(pred, quat)
+            loss = M.chordal_square_loss(pred, quat)
             self.validation_log(batch, pred, quat, loss, batch_idx)
         return loss
 
@@ -145,10 +144,10 @@ def main(config: cf.PointNetTrainConfig):
     trainer.fit(model,dm)
 
     if trainer.is_global_zero:
-        logger.info(f'Finished training. Final mse: {trainer.logged_metrics["train/mean_square"]}')
-        logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        logger.info(f'Finished training. Final MSE: {trainer.logged_metrics["train/mean_square"]}')
+        logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
         if config.model_config.adj_option:
-            logger.info(f'Finished training. Final chordal: {trainer.logged_metrics["train/frob_loss"]}')
+            logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frob_loss"]}')
     
 
 if __name__ == '__main__':
