@@ -22,15 +22,14 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor,adj_option: bool) -> 
     print("shape of tensor: ", cloud.shape)
     b, _, _, _ = cloud.shape
     pred_list = torch.empty(b, 4)
-    for i in range(len(cloud)):
-        curr_pred = loaded_model(cloud[i]) #no flatten needed, as feat net will do the downsampling
-        if adj_option:
-            curr_quat = A.adj_to_quat(curr_pred)
-        else:
-            curr_quat = curr_pred
-        pred_list[i] = curr_quat
 
-    return pred_list
+    curr_pred = loaded_model(cloud) #no flatten needed, as feat net will do the downsampling
+    if adj_option:
+        pred_quat = A.batch_adj_to_quat(curr_pred)
+    else:
+        pred_quat = curr_pred
+
+    return pred_quat
 
 def load_npz(file_path: str) -> torch.Tensor:
     with np.load(file_path) as data:
