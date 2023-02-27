@@ -25,7 +25,9 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor,adj_option: bool) -> 
 
     curr_pred = loaded_model(cloud) #no flatten needed, as feat net will do the downsampling
     if adj_option:
-        pred_quat = A.batch_adj_to_quat(curr_pred)
+        print("predicted adjugate vec has shape: ", curr_pred.shape)
+        pred_adj = A.vec_to_adj(curr_pred)
+        pred_quat = A.batch_adj_to_quat(pred_adj)
     else:
         pred_quat = curr_pred
 
