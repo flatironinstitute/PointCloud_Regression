@@ -9,7 +9,7 @@ class PointNet(nn.Module):
         adj_option: whether to train it with adjugate matrix
         """
         super().__init__()
-        self.in_channel = 3*num_points*2
+        self.in_channel = 3*num_points*2 #may not needed as feat net did the down sampling
         self.out_dim = 4 if not adj_option else 10
         self.feat_net = PointFeatCNN(hidden_size, batch_norm) #feature net directly output dim of hidden layer
         self.hidden_mlp = nn.Sequential(

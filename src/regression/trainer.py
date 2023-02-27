@@ -82,7 +82,7 @@ class PointNetTrainer(pl.LightningModule):
 
         if self.cf.model_config.adj_option:
             adj_pred = A.vec_to_adj(pred)
-            adj_quat = A.batch_quat_to_adj(quat)
+            adj_quat = A.batch_quat_to_adj(quat) #convert g.t. quat to adj for the loss calc
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.validation_log(batch, adj_pred, quat, loss, batch_idx)
         else:
