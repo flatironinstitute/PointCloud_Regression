@@ -13,6 +13,7 @@ class SimulatorConfig:
     device: str = 'cpu'
     rotation_format: str = 'zxy' 
     output_path: str = omegaconf.MISSING
+    max_angle: int = 180
     batch_size: int = 100
     num_points: int = 100
     sigma: float = 0.01

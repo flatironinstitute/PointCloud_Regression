@@ -3,8 +3,8 @@ import numpy as np
 
 from scipy.spatial.transform import Rotation as R
 
-def generate_data_from_random(num_batches:int, points_each_cloud:int, 
-                            sigma:float, rot_format:str, norm:bool, dtype=torch.double) -> torch.Tensor:
+def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
+                    max_angle:int = 180, rot_format:str, norm:bool, dtype=torch.double) -> torch.Tensor:
     """
     generate batches of random rotation from scipy; 
     generate batches of source point clouds from random;
@@ -12,6 +12,9 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int,
     then add noises
     """
     angle_list = R.random(num_batches).as_euler(rot_format, degrees=True)
+    if max_angle != 180:
+        scale_factor = max_angle/180
+    angle_list = angle_list*scale_factor
     rot = R.from_euler(rot_format, angle_list, degrees=True)
     rot_mat, rot_quat = rot.as_matrix(), rot.as_quat()
     rot_mat_tensor = torch.from_numpy(rot_mat)
