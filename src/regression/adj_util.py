@@ -67,4 +67,4 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     """
     adj = vec_to_adj(vec)
     _, evs = torch.symeig(adj, eigenvectors=True)
-    return evs[:,;,0].squeeze()
+    return evs[:,:,0].squeeze()
