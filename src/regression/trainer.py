@@ -38,53 +38,63 @@ class PointNetTrainer(pl.LightningModule):
         return self.point_net(x)
 
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        if self.cf.model_config.adj_option:#if output was 10 dim, pass the converted adj to log
+        net_option = self.cf.model_config.adj_option
+        if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
             pred_quat = A.batch_adj_to_quat(pred)
-            mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
             self.log('train/chordal_square', chordal)
+        elif net_option == "a-matrix":
+            self.log('train/a-mat quat chordal loss', loss)
         else:
             self.log('train/chordal_square', loss)
-            mse = M.mean_square(pred, quat)
-        self.log('train/mean_square', mse)
 
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
         #loss can also wrap up separately for different options
-        if self.cf.model_config.adj_option:
+        network_option = self.cf.model_config.adj_option
+        if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
+        elif network_option == "a-matrix":
+            anti_quat = A.vec_to_quat(pred)
+            loss = M.chordal_square_loss(anti_quat, quat)
+            self.training_log(batch, anti_quat, quat, loss, batch_idx)
         else:
             loss = M.chordal_square_loss(pred, quat)
             self.training_log(batch, pred, quat, loss, batch_idx)
         return loss
 
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
-        if self.cf.model_config.adj_option:
+        net_option = self.cf.model_config.adj_option
+        if net_option == "adjugate":
             self.log('val/frob_loss', loss)
             pred_quat = A.batch_adj_to_quat(pred)
-            mse = M.mean_square(pred_quat, quat)
             chordal = M.chordal_square_loss(pred_quat, quat)
             self.log('val/chordal_square', chordal)
+        elif net_option == "a-matrix":
+            self.log('val/a-mat quat chordal loss', loss)
         else:
             self.log('val/chordal_square', loss)
-            mse = M.mean_square(pred, quat)
-        self.log('val/mean_square', mse)
 
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
 
-        if self.cf.model_config.adj_option:
+        network_option = self.cf.model_config.adj_option
+        if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat) #convert g.t. quat to adj for the loss calc
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.validation_log(batch, adj_pred, quat, loss, batch_idx)
+        elif network_option == "a-matrix":
+            anti_quat = A.vec_to_quat(pred)
+            loss = M.chordal_square_loss(anti_quat, quat)
+            self.validation_log(batch, anti_quat, quat, loss, batch_idx)
         else:
             loss = M.chordal_square_loss(pred, quat)
             self.validation_log(batch, pred, quat, loss, batch_idx)
@@ -144,10 +154,15 @@ def main(config: cf.PointNetTrainConfig):
     trainer.fit(model,dm)
 
     if trainer.is_global_zero:
-        logger.info(f'Finished training. Final MSE: {trainer.logged_metrics["train/mean_square"]}')
-        logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
-        if config.model_config.adj_option:
+        if config.model_config.adj_option == "adjugate":
             logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frob_loss"]}')
+            logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        elif config.model_config.adj_option == "a-matrix":
+            logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
+        else:
+            logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+
+
     
 
 if __name__ == '__main__':

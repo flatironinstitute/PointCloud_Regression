@@ -46,7 +46,7 @@ def batch_adj_to_quat(adj_batch: torch.Tensor) -> torch.Tensor:
 def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     """
     convert the batch of 10 dim vector from network's output
-    to the adjugate matrices
+    to the adjugate matrices; equivalent to [Avec to A]
     """
     if vec.dim() < 2:
         vec.unsqueeze(dim = 0)
@@ -56,3 +56,15 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     adj[:,idx[0],idx[1]] = vec
     adj[:,idx[1],idx[0]] = vec
     return adj.squeeze()
+
+def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
+    """
+    convert a vector to unit quaternion
+    args:
+    vec: 10 dim vector (default) from netwrok training
+    return:
+    4 dim unit quaternion
+    """
+    adj = vec_to_adj(vec)
+    _, evs = torch.symeig(adj, eigenvectors=True)
+    return evs[:,;,0].squeeze()

@@ -3,14 +3,13 @@ import torch.nn as nn
 from typing import Optional
 
 class PointNet(nn.Module):
-    def __init__(self, hidden_size:int, num_points:int, adj_option:bool, batch_norm:bool) -> None:
+    def __init__(self, hidden_size:int, num_points:int, adj_option:str, batch_norm:bool) -> None:
         """
         num_points: number of 3d points in each cloud
         adj_option: whether to train it with adjugate matrix
         """
         super().__init__()
-        self.in_channel = 3*num_points*2 #may not needed as feat net did the down sampling
-        self.out_dim = 4 if not adj_option else 10
+        self.out_dim = 4 if adj_option == "chordal" else 10
         self.feat_net = PointFeatCNN(hidden_size, batch_norm) #feature net directly output dim of hidden layer
         self.hidden_mlp = nn.Sequential(
                                     nn.Linear(hidden_size, 256),
