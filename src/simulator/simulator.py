@@ -3,8 +3,8 @@ import hydra
 import logging
 import os
 
-import cloud_from_random as cloud
-import config as cf
+import simulator.cloud_from_random as cloud
+import simulator.config as cf
 
 @hydra.main(config_path=None, config_name='simulate', version_base='1.1')
 def main(config: cf.SimulatorConfig):
