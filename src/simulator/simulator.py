@@ -10,8 +10,8 @@ import simulator.config as cf
 def main(config: cf.SimulatorConfig):
     logger = logging.getLogger(__name__)
 
-    logger.info("generate data from random with norm" + str(config.source_norm) + 
-                "and max angle: " + str(config.max_angle))
+    logger.info("generate data from random with norm: " + str(config.source_norm) + 
+                " and max angle: " + str(config.max_angle))
 
     quat, concate_cloud = cloud.generate_batches(config.batch_size,
                             config.num_points, config.sigma, config.rotation_format,
