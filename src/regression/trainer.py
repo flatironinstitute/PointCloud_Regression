@@ -42,12 +42,14 @@ class PointNetTrainer(pl.LightningModule):
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
             pred_quat = A.batch_adj_to_quat(pred)
-            chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('train/chordal_square', chordal)
+            angle_diff = M.quat_angle_diff(pred_quat, quat)
         elif net_option == "a-matrix":
+            angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/a-mat quat chordal loss', loss)
         else:
+            angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/chordal_square', loss)
+        self.log('train/angle difference respect to g.t.', angle_diff)
 
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
@@ -74,12 +76,14 @@ class PointNetTrainer(pl.LightningModule):
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
             pred_quat = A.batch_adj_to_quat(pred)
-            chordal = M.chordal_square_loss(pred_quat, quat)
-            self.log('val/chordal_square', chordal)
+            angle_diff = M.quat_angle_diff(pred_quat, quat)
         elif net_option == "a-matrix":
+            angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/a-mat quat chordal loss', loss)
         else:
+            angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/chordal_square', loss)
+        self.log('val/angle difference respect to g.t.', angle_diff)
 
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
@@ -156,11 +160,12 @@ def main(config: cf.PointNetTrainConfig):
     if trainer.is_global_zero:
         if config.model_config.adj_option == "adjugate":
             logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frob_loss"]}')
-            logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
         elif config.model_config.adj_option == "a-matrix":
             logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
         else:
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+            
+        logger.info(f'Finished training. Final Chordal: {trainer.logged.metrics["train/angle difference respect to g.t."]}')
 
 
     
