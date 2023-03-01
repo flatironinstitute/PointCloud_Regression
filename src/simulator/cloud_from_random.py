@@ -4,7 +4,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
-                    rot_format:str, norm:bool, max_angle:int = 180, dtype=torch.double) -> torch.Tensor:
+                    rot_format:str, norm:bool, max_angle:int, dtype=torch.double) -> torch.Tensor:
     """
     generate batches of random rotation from scipy; 
     generate batches of source point clouds from random;
@@ -30,13 +30,13 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
     return rot_quat, source_cloud, target_cloud
 
 def generate_batches(num_batches:int, points_each_cloud:int, 
-                    sigma:float, rot_format:str, norm:bool, dtype=torch.double) -> torch.Tensor:
+                    sigma:float, rot_format:str, norm:bool, max_angle:int, dtype=torch.double) -> torch.Tensor:
     """
     concatenate source&target cloud for input data; 
     quat as ground truth
     """
     quat_, source_, target_ = generate_data_from_random(num_batches,points_each_cloud,
-                                sigma, rot_format, norm)
+                                sigma, rot_format, norm, max_angle)
     
 
     concatenate_cloud = torch.empty(num_batches,2,points_each_cloud,3,dtype=dtype)
