@@ -17,6 +17,10 @@ def read_check_point(path: str):
     model.eval()
     return model
 
+def logged_metrics_from_model(loaded_model):
+    logged_metrics = loaded_model.logger_connector.logged_metrics
+    return logged_metrics
+
 def forward_loaded_model(loaded_model, cloud: torch.Tensor,adj_option: bool) -> torch.Tensor:
     #cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
@@ -100,6 +104,8 @@ def main():
     save_path = args.output_path
 
     pointnet_model_adj = read_check_point(check_point_adj)
+    adj_metrics = logged_metrics_from_model(pointnet_model_adj)
+    print(adj_metrics)
     pointnet_model_chr = read_check_point(check_point_chr)
     cloud, true_quat = load_npz(cloud_data)
     pred_quat_adj = forward_loaded_model(pointnet_model_adj, cloud, True)
