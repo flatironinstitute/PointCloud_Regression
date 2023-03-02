@@ -61,6 +61,14 @@ class PointNetTrainer(pl.LightningModule):
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+
+            #add constrain if specified
+            if self.cf.constrain:
+                selected_entries = [0, 4, 7, 9]
+                norm_sq = torch.sum(pred[:, selected_entries]**2, dim=1)
+                norm_penalty = torch.mean((norm_sq - 1)**2)
+                loss = loss + norm_penalty
+                
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":
             anti_quat = A.vec_to_quat(pred)
@@ -164,7 +172,7 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
         else:
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
-            
+        
         logger.info(f'Finished training. Final Chordal: {trainer.logged.metrics["train/angle difference respect to g.t."]}')
 
 

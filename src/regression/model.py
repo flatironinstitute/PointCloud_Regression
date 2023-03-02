@@ -18,6 +18,7 @@ class PointNet(nn.Module):
                                     torch.nn.LeakyReLU(),
                                     torch.nn.Linear(128, self.out_dim)
                                     )
+        self.soft_max = nn.Softmax()
 
     def forward(self, x) -> torch.Tensor:
         x_1 = x[:, 0, :, :].transpose(1,2)
