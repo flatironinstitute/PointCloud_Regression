@@ -65,7 +65,7 @@ class PointNetTrainer(pl.LightningModule):
             #add constrain if specified
             if self.cf.constrain:
                 selected_entries = [0, 4, 7, 9]
-                norm_sq = torch.sum(pred[:, selected_entries]**2, dim=1)
+                norm_sq = torch.sum(pred[:, selected_entries], dim=1)
                 norm_penalty = torch.mean((norm_sq - 1)**2)
                 loss = loss + norm_penalty
 
