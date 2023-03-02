@@ -18,7 +18,7 @@ def read_check_point(path: str):
     return model
 
 def logged_metrics_from_model(loaded_model):
-    logged_metrics = loaded_model.logger_connector.logged_metrics
+    logged_metrics = loaded_model.logged_metrics
     return logged_metrics
 
 def forward_loaded_model(loaded_model, cloud: torch.Tensor,adj_option: bool) -> torch.Tensor:
