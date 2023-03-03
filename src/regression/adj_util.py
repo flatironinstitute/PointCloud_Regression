@@ -30,17 +30,22 @@ def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     return adjugate
 
 
-def batch_quat_to_adj(q_batch:torch.Tensor) -> torch.Tensor:
+def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     """
-    convert a batch of quaternion from DL to adj for training
+    Convert batch of quaternions to batch of 4x4 adjugate matrices.
     """
-    b, _ = q_batch.shape
-    adj_batch = torch.empty(b,4,4)
+    q_cpu = q.cpu()
+    qx, qy, qz, q0 = q_cpu[:, 1], q_cpu[:, 2], q_cpu[:, 3], q_cpu[:, 0]
+    q_ordered = torch.stack([q0, qx, qy, qz], dim=1)
+    adjugate = torch.stack([
+        q0[:, None] * q_ordered,
+        qx[:, None] * q_ordered,
+        qy[:, None] * q_ordered,
+        qz[:, None] * q_ordered
+    ], dim=2, device=q.device)
+    print("device of adj after batch conversion: ", adjugate.device)
+    return adjugate
 
-    for i in range(len(q_batch)):
-        curr_adj = quat_to_adj(q_batch[i])
-        adj_batch[i] = curr_adj
-    return adj_batch
 
 def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
     norms = [adj_mat[0].norm(),adj_mat[1].norm(),adj_mat[2].norm(),adj_mat[3].norm()]
