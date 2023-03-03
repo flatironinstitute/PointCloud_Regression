@@ -55,8 +55,8 @@ def frobenius_norm_loss(adj_mat_src: torch.Tensor, adj_mat_trg: torch.Tensor, re
     assert(adj_mat_src.shape == adj_mat_trg.shape)
 
     if adj_mat_src.dim() < 3:
-        adj_mat_src.unsqueeze(dim = 0).cuda()
-        adj_mat_trg.unsqueeze(dim = 0).cuda()
+        adj_mat_src.unsqueeze(dim = 0)
+        adj_mat_trg.unsqueeze(dim = 0)
     losses = (adj_mat_src - adj_mat_trg).norm(dim = [1,2])
     loss = losses.mean() if reduce else losses
     return loss

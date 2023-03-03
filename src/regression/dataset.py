@@ -8,10 +8,13 @@ class SimulatedDataset(Dataset):
     Dataset to load simulated data which generated from random
     rotations.
     """
-    def __init__(self, path: str):
+    def __init__(self, path: str, device:str):
         with np.load(path) as data:
             self.cloud = torch.as_tensor(data["cloud"],dtype=torch.float32)
             self.quat  = torch.as_tensor(data["quat"],dtype=torch.float32)
+            if device == 'gpu':
+                self.cloud.to('cuda')
+                self.quat.to('cuda')
 
     def __len__(self):
         return len(self.cloud)
