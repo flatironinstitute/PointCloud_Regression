@@ -96,15 +96,15 @@ class PointNetTrainer(pl.LightningModule):
     def validation_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
-        print("cloud's device: ",cloud.device())
-        print("predict's device: ",pred.device())
+        print("cloud's device: ",cloud.device)
+        print("predict's device: ",pred.device)
 
         network_option = self.cf.model_config.adj_option
         if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
-            print("predicted adjugate's device: ",adj_pred.device())
+            print("predicted adjugate's device: ",adj_pred.device)
             adj_quat = A.batch_quat_to_adj(quat) #convert g.t. quat to adj for the loss calc
-            print("g.t. adjugate's device: ",adj_quat.device())
+            print("g.t. adjugate's device: ",adj_quat.device)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.validation_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":
