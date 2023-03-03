@@ -26,6 +26,7 @@ def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
         [qy * item for item in q_ordered],
         [qz * item for item in q_ordered]
     ], device=q.device)
+    print("device of adj after single conversion: ", adjugate.device)
     return adjugate
 
 
