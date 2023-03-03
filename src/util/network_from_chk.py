@@ -21,17 +21,19 @@ def logged_metrics_from_model(loaded_model):
     logged_metrics = loaded_model.logger.metrics
     return logged_metrics
 
-def forward_loaded_model(loaded_model, cloud: torch.Tensor,adj_option: bool) -> torch.Tensor:
+def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> torch.Tensor:
     #cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
     b, _, _, _ = cloud.shape
     pred_list = torch.empty(b, 4)
 
     curr_pred = loaded_model(cloud) #no flatten needed, as feat net will do the downsampling
-    if adj_option:
+    if net_option == "adjugate":
         print("predicted adjugate vec has shape: ", curr_pred.shape)
         pred_adj = A.vec_to_adj(curr_pred)
         pred_quat = A.batch_adj_to_quat(pred_adj)
+    elif net_option == "a-matrix":
+        pred_quat = A.vec_to_quat(curr_pred)
     else:
         pred_quat = curr_pred
 
@@ -71,15 +73,16 @@ def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:
     m = np.arange(len(net_list_adj))
     k = np.arange(len(net_list_chr))
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10,7))
 
-    ax.plot(n, svd_list.detach().numpy(), 'ro', label = 'SVD Optim')
+    ax.plot(n, svd_list.detach().numpy(), 'ro', label = 'SVD Optimization')
     ax.plot(m, net_list_adj.detach().numpy(), 'b^', label = 'Pred by Adj Frob')
     ax.plot(k, net_list_chr.detach().numpy(), 'gx', label = 'Pred by Chordal Sqr')
 
     ax.set_xlabel('Index of Point Cloud')
     ax.set_ylabel('Differences in Angle')
-    
+    ax.legend()
+
     return fig
 
 def generate_dict(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor):
