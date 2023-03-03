@@ -42,6 +42,8 @@ def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
         qy[:, None] * q_ordered,
         qz[:, None] * q_ordered
     ], dim=2)
+    print("device of adj after batch conversion: ", adjugate.device)
+
     return adjugate
 
 

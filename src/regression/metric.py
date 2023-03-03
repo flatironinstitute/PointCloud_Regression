@@ -3,12 +3,20 @@ import torch
 
 def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
-    calculate batch of quaternion diff
+    Calculate batch of quaternion differences.
     """
-    assert(q_a.shape == q_b.shape)
-    assert(q_a.shape[-1] == 4)
+    assert q_a.shape == q_b.shape
+    assert q_a.shape[-1] == 4
 
-    return torch.min((q_a - q_b).norm(dim = 1), (q_a + q_b).norm(dim = 1)).squeeze()
+    diff = (q_a - q_b).norm(dim=1)
+    sum_ = (q_a + q_b).norm(dim=1)
+    out = torch.min(diff, sum_).squeeze()
+
+    # Ensure output tensor is on the same device as inputs
+    if q_a.device != q_b.device:
+        out = out.to(q_a.device)
+    print("norm's device: ",out.device)
+    return out
 
 def quat_norm_to_angle(q_norms: torch.Tensor, units='deg'):
     """
@@ -21,6 +29,9 @@ def quat_norm_to_angle(q_norms: torch.Tensor, units='deg'):
         pass
     else:
         raise RuntimeError('Unknown units in metric conversion.')
+    
+    print("angle's device: ",angle.device)
+
     return angle
 
 def quat_angle_diff(q_a: torch.Tensor, q_b: torch.Tensor, units='deg', reduce=True):
