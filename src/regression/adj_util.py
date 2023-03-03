@@ -1,18 +1,33 @@
 import numpy as np
 import torch
 
+# def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
+#     """
+#     convert quaternion to the 4x4 adjugate matrix
+#     """
+#     adjugate = []
+#     qx,qy,qz,q0 = q
+#     q_ordered = [float(q0),float(qx),float(qy),float(qz)]
+#     adjugate.append([float(q0)* item for item in q_ordered])
+#     adjugate.append([float(qx)* item for item in q_ordered])
+#     adjugate.append([float(qy)* item for item in q_ordered])
+#     adjugate.append([float(qz)* item for item in q_ordered])
+#     return torch.as_tensor(adjugate)
 def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     """
-    convert quaternion to the 4x4 adjugate matrix
+    Convert quaternion to the 4x4 adjugate matrix.
     """
-    adjugate = []
-    qx,qy,qz,q0 = q
-    q_ordered = [float(q0),float(qx),float(qy),float(qz)]
-    adjugate.append([float(q0)* item for item in q_ordered])
-    adjugate.append([float(qx)* item for item in q_ordered])
-    adjugate.append([float(qy)* item for item in q_ordered])
-    adjugate.append([float(qz)* item for item in q_ordered])
-    return torch.as_tensor(adjugate)
+    q_cpu = q.cpu()
+    qx, qy, qz, q0 = q_cpu.unbind()
+    q_ordered = [q0, qx, qy, qz]
+    adjugate = torch.tensor([
+        [q0 * item for item in q_ordered],
+        [qx * item for item in q_ordered],
+        [qy * item for item in q_ordered],
+        [qz * item for item in q_ordered]
+    ], device=q.device)
+    return adjugate
+
 
 def batch_quat_to_adj(q_batch:torch.Tensor) -> torch.Tensor:
     """
