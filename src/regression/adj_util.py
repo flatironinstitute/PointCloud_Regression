@@ -46,8 +46,6 @@ def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
 
     return adjugate
 
-
-
 def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
     norms = [adj_mat[0].norm(),adj_mat[1].norm(),adj_mat[2].norm(),adj_mat[3].norm()]
     max_idx = norms.index(max(norms))
