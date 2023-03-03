@@ -124,7 +124,7 @@ def main():
     delta_q_fig = generate_fig(list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff)
     delta_q_fig.savefig(save_path+"/angle_diff.png")
 
-    delta_q_dict = generate_dict(list_svd_diff, list_adj_diff, list_chr_diff)
+    delta_q_dict = generate_dict(list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff)
     np.savez(save_path+"/angle_diff.npz", **delta_q_dict)
 
 if __name__ == '__main__':
