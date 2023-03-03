@@ -14,7 +14,7 @@ class TrainingDataConfig:
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
-    device: str = 'cuda:0'
+    device: str = 'cuda'
 
 @dataclasses.dataclass
 class OptimConfig:
