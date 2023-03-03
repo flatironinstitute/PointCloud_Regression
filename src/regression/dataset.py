@@ -10,11 +10,8 @@ class SimulatedDataset(Dataset):
     """
     def __init__(self, path: str, device:str):
         with np.load(path) as data:
-            self.cloud = torch.as_tensor(data["cloud"],dtype=torch.float32)
-            self.quat  = torch.as_tensor(data["quat"],dtype=torch.float32)
-            if device == 'gpu':
-                self.cloud.to('cuda')
-                self.quat.to('cuda')
+            self.cloud = torch.as_tensor(data["cloud"], device=device, dtype=torch.float32)
+            self.quat  = torch.as_tensor(data["quat"], device=device, dtype=torch.float32)
 
     def __len__(self):
         return len(self.cloud)
