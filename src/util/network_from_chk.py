@@ -17,10 +17,6 @@ def read_check_point(path: str):
     model.eval()
     return model
 
-def logged_metrics_from_model(loaded_model):
-    logged_metrics = loaded_model.logger.metrics
-    return logged_metrics
-
 def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> torch.Tensor:
     #cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
@@ -59,25 +55,29 @@ def get_svd_quat(cloud: torch.Tensor) -> torch.Tensor:
 
     return quat_list
 
-def get_batch_angle_diff(cloud: torch.Tensor, pred_quat_adj: torch.Tensor, pred_quat_chr: torch.Tensor, true_quat: torch.Tensor):
+def get_batch_angle_diff(cloud: torch.Tensor, pred_quat_adj: torch.Tensor, pred_quat_chr: torch.Tensor, 
+                pred_quat_amt: torch.Tensor, true_quat: torch.Tensor):
     #the input can be wrap up as a dict for different predicted quat
     svd_quat = get_svd_quat(cloud)
     svd_list = M.quat_angle_diff(svd_quat, true_quat, reduce=False)
     net_list_adj = M.quat_angle_diff(pred_quat_adj, true_quat, reduce=False)
     net_list_chr = M.quat_angle_diff(pred_quat_chr, true_quat, reduce=False)
-    return svd_list, net_list_adj, net_list_chr #three torch.Tensors
+    net_list_amt = M.quat_angle_diff(pred_quat_amt, true_quat, reduce=False)
+    return svd_list, net_list_adj, net_list_chr, net_list_amt#4 torch.Tensors
 
-def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor):
+def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor, net_list_amt:torch.Tensor):
     #need wrap up more lines; need add title and axes
-    n = np.arange(len(svd_list))
+    l = np.arange(len(svd_list))
     m = np.arange(len(net_list_adj))
-    k = np.arange(len(net_list_chr))
+    n = np.arange(len(net_list_chr))
+    k = np.arange(len(net_list_amt))
     
     fig, ax = plt.subplots(figsize=(10,7))
 
-    ax.plot(n, svd_list.detach().numpy(), 'ro', label = 'SVD Optimization')
-    ax.plot(m, net_list_adj.detach().numpy(), 'b^', label = 'Pred by Adj Frob')
-    ax.plot(k, net_list_chr.detach().numpy(), 'gx', label = 'Pred by Chordal Sqr')
+    ax.plot(l, svd_list.detach().numpy(), 'ro', label = 'SVD Optimization')
+    ax.plot(m, net_list_adj.detach().numpy(), 'b^', label = 'Adj Frob')
+    ax.plot(n, net_list_chr.detach().numpy(), 'gx', label = 'Chordal Sqr')
+    ax.plot(n, net_list_amt.detach().numpy(), 'y*', label = 'A-Matrix')
 
     ax.set_xlabel('Index of Point Cloud')
     ax.set_ylabel('Differences in Angle')
@@ -85,11 +85,12 @@ def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:
 
     return fig
 
-def generate_dict(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor):
+def generate_dict(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor, net_list_amt:torch.Tensor):
     save_data = {}
     save_data["svd_list"] = svd_list.detach().numpy()
     save_data["net_list_adj"] = net_list_adj.detach().numpy()
     save_data["net_list_chr"] = net_list_chr.detach().numpy()
+    save_data["net_list_amt"] = net_list_amt.detach().numpy()
     return save_data
 
 def main():
@@ -97,25 +98,30 @@ def main():
     parser.add_argument('npz_path', type = str, help = 'path of npz file')
     parser.add_argument('chkpt_path_adj', type = str, help = 'path of lightning check point with adjugate training')
     parser.add_argument('chkpt_path_chr', type = str, help = 'path of lightning check point with chordal training')
+    parser.add_argument('chkpt_path_amt', type = str, help = 'path of lightning check point with a-matrix training')
     parser.add_argument('output_path', type = str, help = 'path of save figures and text')
 
     args = parser.parse_args()
 
     check_point_adj = args.chkpt_path_adj
     check_point_chr = args.chkpt_path_chr
+    check_point_amt = args.chkpt_path_amt
+
     cloud_data  = args.npz_path
     save_path = args.output_path
 
     pointnet_model_adj = read_check_point(check_point_adj)
-    adj_metrics = logged_metrics_from_model(pointnet_model_adj)
-    print(adj_metrics)
     pointnet_model_chr = read_check_point(check_point_chr)
-    cloud, true_quat = load_npz(cloud_data)
-    pred_quat_adj = forward_loaded_model(pointnet_model_adj, cloud, True)
-    pred_quat_chr = forward_loaded_model(pointnet_model_chr, cloud, False)
+    pointnet_model_amt = read_check_point(check_point_amt)
 
-    list_svd_diff, list_adj_diff, list_chr_diff = get_batch_angle_diff(cloud, pred_quat_adj, pred_quat_chr, true_quat)
-    delta_q_fig = generate_fig(list_svd_diff, list_adj_diff, list_chr_diff)
+    cloud, true_quat = load_npz(cloud_data)
+    pred_quat_adj = forward_loaded_model(pointnet_model_adj, cloud, "adjugate")
+    pred_quat_chr = forward_loaded_model(pointnet_model_chr, cloud, "chordal")
+    pred_quat_amt = forward_loaded_model(pointnet_model_amt, cloud, "a-matrix")
+
+    list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff = \
+                get_batch_angle_diff(cloud, pred_quat_adj, pred_quat_chr, pred_quat_amt, true_quat)
+    delta_q_fig = generate_fig(list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff)
     delta_q_fig.savefig(save_path+"/angle_diff.png")
 
     delta_q_dict = generate_dict(list_svd_diff, list_adj_diff, list_chr_diff)
