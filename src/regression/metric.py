@@ -7,6 +7,8 @@ def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
     assert q_a.shape == q_b.shape
     assert q_a.shape[-1] == 4
+    print("qa's device: ",q_a.device)
+    print("qb's device: ",q_b.device)
 
     diff = (q_a - q_b).norm(dim=1)
     sum_ = (q_a + q_b).norm(dim=1)
