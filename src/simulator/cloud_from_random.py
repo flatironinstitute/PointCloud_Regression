@@ -12,6 +12,7 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
     then add noises
     """
     angle_list = R.random(num_batches).as_euler(rot_format, degrees=True)
+    scale_factor = 1
     if max_angle != 180:
         scale_factor = max_angle/180
     angle_list = angle_list*scale_factor
