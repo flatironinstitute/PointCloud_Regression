@@ -1,18 +1,6 @@
 import numpy as np
 import torch
 
-# def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
-#     """
-#     convert quaternion to the 4x4 adjugate matrix
-#     """
-#     adjugate = []
-#     qx,qy,qz,q0 = q
-#     q_ordered = [float(q0),float(qx),float(qy),float(qz)]
-#     adjugate.append([float(q0)* item for item in q_ordered])
-#     adjugate.append([float(qx)* item for item in q_ordered])
-#     adjugate.append([float(qy)* item for item in q_ordered])
-#     adjugate.append([float(qz)* item for item in q_ordered])
-#     return torch.as_tensor(adjugate)
 def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     """
     Convert quaternion to the 4x4 adjugate matrix.
@@ -32,7 +20,8 @@ def quat_to_adj(q: torch.Tensor) -> torch.Tensor:
 
 def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     """
-    Convert batch of quaternions to batch of 4x4 adjugate matrices.
+    Convert batch of quaternions to batch of 4x4 adjugate matrices;
+    w/o call single quat_to_adj transfer
     """
     qx, qy, qz, q0 = q[:, 1], q[:, 2], q[:, 3], q[:, 0]
     q_ordered = torch.stack([q0, qx, qy, qz], dim=1).to(q.device)
@@ -52,7 +41,7 @@ def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
     q_pred = adj_mat[max_idx]/adj_mat[max_idx].norm()
     q0,qx,qy,qz = q_pred
     q_pred_order = [qx,qy,qz,q0]
-    return torch.as_tensor(q_pred_order, device=adj_mat.device)
+    return torch.as_tensor(q_pred_order, device=adj_mat.device) #each new created tensor must specify the device, otherwise default send to cpu
 
 def batch_adj_to_quat(adj_batch: torch.Tensor) -> torch.Tensor:
     b, _, _ = adj_batch.shape

@@ -7,8 +7,6 @@ def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
     assert q_a.shape == q_b.shape
     assert q_a.shape[-1] == 4
-    print("qa's device: ",q_a.device)
-    print("qb's device: ",q_b.device)
 
     diff = (q_a - q_b).norm(dim=1)
     sum_ = (q_a + q_b).norm(dim=1)
@@ -17,7 +15,6 @@ def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     # Ensure output tensor is on the same device as inputs
     if q_a.device != q_b.device:
         out = out.to(q_a.device)
-    print("norm's device: ",out.device)
     return out
 
 def quat_norm_to_angle(q_norms: torch.Tensor, units='deg'):
@@ -32,8 +29,6 @@ def quat_norm_to_angle(q_norms: torch.Tensor, units='deg'):
     else:
         raise RuntimeError('Unknown units in metric conversion.')
     
-    print("angle's device: ",angle.device)
-
     return angle
 
 def quat_angle_diff(q_a: torch.Tensor, q_b: torch.Tensor, units='deg', reduce=True):
