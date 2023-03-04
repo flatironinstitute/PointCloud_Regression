@@ -48,7 +48,7 @@ class ModelNetDataset(Dataset):
         curr_rot = generate_random_quat()
         r = R.from_quat(curr_rot)
         rot_mat = r.as_matrix()
-        rot_mat_tensor = torch.from_numpy(rot_mat)
+        rot_mat_tensor = torch.from_numpy(rot_mat, dtype=torch.float32)
 
         rotate_cloud = torch.matmul(source_cloud, rot_mat_tensor)
         noise = self.sigma*torch.randn_like(source_cloud)
