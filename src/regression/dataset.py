@@ -34,7 +34,7 @@ class ModelNetDataset(Dataset):
     def __init__(self, base_path: str, category_list: list, sigma: float):
         self.all_files = []
         for c in category_list:
-            curr_path = base_path + c
+            curr_path = base_path + "/" + c
             curr_list = F.list_files_in_dir(curr_path)
             self.all_files += curr_list
         self.sigma =sigma
