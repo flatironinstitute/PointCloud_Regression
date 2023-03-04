@@ -125,7 +125,7 @@ class PointNetDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         if self.config.model_net:
             self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
-                                    self.config.category, self.config.sigma)
+                                    self.config.category, self.config.sigma, self.config.num_points)
         else:
             self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
 

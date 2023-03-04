@@ -31,20 +31,24 @@ class ModelNetDataset(Dataset):
     """
     Dataset to load ModelNet40 mesh data
     """
-    def __init__(self, base_path: str, category_list: list, sigma: float):
+    def __init__(self, base_path: str, category_list: list, num_sample: int, sigma: float):
         self.all_files = []
         for c in category_list:
             curr_path = "/".join([base_path, c, "train"])
             curr_list = F.list_files_in_dir(curr_path)
             self.all_files += curr_list
         self.sigma =sigma
+        self.num_sample = num_sample
 
     def __len__(self):
         return len(self.all_files)
 
     def __getitem__(self, index: int):
-        source_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
-        num_points = len(source_cloud)
+        orig_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
+        random_indices = torch.randperm(len(orig_cloud))
+        picked_indices = random_indices[:self.num_sample]  
+        source_cloud = orig_cloud[picked_indices]
+        
         curr_rot = generate_random_quat()
         r = R.from_quat(curr_rot)
         rot_mat = r.as_matrix()
