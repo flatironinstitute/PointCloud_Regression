@@ -34,11 +34,9 @@ class ModelNetDataset(Dataset):
     def __init__(self, base_path: str, category_list: list, sigma: float):
         self.all_files = []
         for c in category_list:
-            curr_path = base_path + "/" + c
+            curr_path = "/".join([base_path, c, "train"])
             curr_list = F.list_files_in_dir(curr_path)
-            print("curr directory: ",len(curr_list))
             self.all_files += curr_list
-        print("all directories: ",len(self.all_files))
         self.sigma =sigma
 
     def __len__(self):
@@ -46,7 +44,6 @@ class ModelNetDataset(Dataset):
 
     def __getitem__(self, index: int):
         source_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
-        print("length of cloud ", index, "is: ", len(source_cloud))
         num_points = len(source_cloud)
         curr_rot = generate_random_quat()
         r = R.from_quat(curr_rot)
