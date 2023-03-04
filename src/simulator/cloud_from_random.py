@@ -45,3 +45,13 @@ def generate_batches(num_batches:int, points_each_cloud:int,
     concatenate_cloud[:,1,:,:] = target_.transpose(1,2)
 
     return quat_, concatenate_cloud
+
+def generate_random_quat() -> np.ndarray:
+    #this code generates a random quaternion
+    #NOTE: this is _actually_ the _correct_ way to do a uniform random rotation in SO3
+    
+    quat = np.random.uniform(-1, 1, 4)  # note this is a half-open interval, so 1 is not included but -1 is
+    norm = np.sqrt(np.sum(quat**2))
+    if 0.2 <= norm <= 1.0:
+        quat = quat / norm
+    return quat

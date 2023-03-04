@@ -14,6 +14,11 @@ class TrainingDataConfig:
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
+    #option for model net
+    category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
+    sigma: float = 0.01
+    model_net: bool = True
+
 
 @dataclasses.dataclass
 class OptimConfig:

@@ -14,7 +14,7 @@ import regression.config as cf
 from regression.model import PointNet
 import regression.metric as M
 import regression.adj_util as A
-from regression.dataset import SimulatedDataset
+from regression.dataset import SimulatedDataset, ModelNetDataset
 
 class PointNetTrainer(pl.LightningModule):
     hparams: cf.PointNetTrainConfig
@@ -123,8 +123,11 @@ class PointNetDataModule(pl.LightningDataModule):
         super().__init__()
         self.config = config
         self.batch_size = batch_size
-
-        self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
+        if self.config.model_net:
+            self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
+                                    self.config.category, self.config.sigma)
+        else:
+            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
 
         self.ds_train = None
         self.ds_val = None
