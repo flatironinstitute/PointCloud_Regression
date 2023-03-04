@@ -48,7 +48,7 @@ def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
 
 def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
     norms = adj_mat[:4].norm(dim=1)
-    max_idx = norms.index(max(norms))
+    max_idx = norms.argmax()
     q_pred = adj_mat[max_idx]/adj_mat[max_idx].norm()
     q0,qx,qy,qz = q_pred
     q_pred_order = [qx,qy,qz,q0]
