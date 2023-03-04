@@ -47,16 +47,16 @@ def batch_quat_to_adj(q: torch.Tensor) -> torch.Tensor:
     return adjugate
 
 def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
-    norms = [adj_mat[0].norm(),adj_mat[1].norm(),adj_mat[2].norm(),adj_mat[3].norm()]
+    norms = adj_mat[:4].norm(axis=1)
     max_idx = norms.index(max(norms))
     q_pred = adj_mat[max_idx]/adj_mat[max_idx].norm()
     q0,qx,qy,qz = q_pred
     q_pred_order = [qx,qy,qz,q0]
-    return torch.as_tensor(q_pred_order)
+    return torch.as_tensor(q_pred_order, device=adj_mat.device)
 
 def batch_adj_to_quat(adj_batch: torch.Tensor) -> torch.Tensor:
     b, _, _ = adj_batch.shape
-    q_batch = torch.empty(b,4)
+    q_batch = torch.empty(b,4, device=adj_batch.device)
 
     for i in range(len(adj_batch)):
         curr_q = adj_to_quat(adj_batch[i])
