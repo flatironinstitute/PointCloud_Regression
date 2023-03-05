@@ -58,10 +58,11 @@ class ModelNetDataset(Dataset):
         rotate_cloud = torch.matmul(source_cloud, rot_mat_tensor)
         noise = self.sigma*torch.randn_like(source_cloud)
         target_cloud = rotate_cloud + noise
-
-        concatenate_cloud = torch.empty(2, num_points, 3, dtype=torch.float32)
         print("shape of source: ", source_cloud.shape)
         print("shape of target: ", target_cloud.shape)
+        print("shape of rotmat: ", rot_mat_tensor.shape)
+        concatenate_cloud = torch.empty(2, num_points, 3, dtype=torch.float32)
+        
         print("shape of concatenation: ", concatenate_cloud.shape)
 
         concatenate_cloud[0,:,:] = source_cloud
