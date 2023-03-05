@@ -45,6 +45,9 @@ class ModelNetDataset(Dataset):
 
     def __getitem__(self, index: int):
         orig_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
+        if len(orig_cloud) < self.num_sample:
+            return None
+            
         random_indices = torch.randperm(len(orig_cloud))
         num_points = int(self.num_sample)
         picked_indices = random_indices[:num_points]  
@@ -58,15 +61,11 @@ class ModelNetDataset(Dataset):
         rotate_cloud = torch.matmul(source_cloud, rot_mat_tensor)
         noise = self.sigma*torch.randn_like(source_cloud)
         target_cloud = rotate_cloud + noise
-        print("shape of source: ", source_cloud.shape)
-        print("shape of target: ", target_cloud.shape)
-        print("shape of rotmat: ", rot_mat_tensor.shape)
+        
         concatenate_cloud = torch.empty(2, num_points, 3, dtype=torch.float32)
         
-        print("shape of concatenation: ", concatenate_cloud.shape)
-
-        concatenate_cloud[0,:,:] = source_cloud.unsqueeze(0)
-        concatenate_cloud[1,:,:] = target_cloud.unsqueeze(0)
+        concatenate_cloud[0,:,:] = source_cloud
+        concatenate_cloud[1,:,:] = target_cloud
 
         return concatenate_cloud, torch.as_tensor(r.as_quat(),dtype=torch.float32)
 
