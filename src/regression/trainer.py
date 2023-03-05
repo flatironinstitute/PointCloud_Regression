@@ -101,7 +101,6 @@ class PointNetTrainer(pl.LightningModule):
         if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat) #convert g.t. quat to adj for the loss calc
-            print("g.t. adjugate's device: ",adj_quat.device)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
             self.validation_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":

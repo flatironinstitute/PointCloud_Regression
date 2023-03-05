@@ -28,10 +28,12 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> to
         print("predicted adjugate vec has shape: ", curr_pred.shape)
         pred_adj = A.vec_to_adj(curr_pred)
         pred_quat = A.batch_adj_to_quat(pred_adj)
+        print('predicted adjugate has shape: ', pred_quat.shape)
     elif net_option == "a-matrix":
         pred_quat = A.vec_to_quat(curr_pred)
     else:
         pred_quat = curr_pred
+        print('predicted chordal has shape: ', pred_quat.shape)
 
     return pred_quat
 

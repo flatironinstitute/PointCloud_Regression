@@ -35,6 +35,8 @@ def quat_angle_diff(q_a: torch.Tensor, q_b: torch.Tensor, units='deg', reduce=Tr
     """
     get angle diff for a batch of quaternions
     """
+    print("q_a: ", q_a.shape)
+    print("q_b: ", q_b.shape)
     assert(q_a.shape == q_b.shape)
     assert(q_a.shape[-1] == 4)
     diffs = quat_norm_to_angle(quat_norm_diff(q_a, q_b), units=units)
