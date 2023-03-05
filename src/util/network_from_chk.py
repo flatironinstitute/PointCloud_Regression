@@ -72,13 +72,14 @@ def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:
     n = np.arange(len(net_list_chr))
     k = np.arange(len(net_list_amt))
     
-    fig, ax = plt.subplots(figsize=(10,7))
+    fig, ax = plt.subplots(figsize=(10,7),dpi = 100)
 
     ax.plot(l, svd_list.detach().numpy(), 'ro', label = 'SVD Optimization')
     ax.plot(m, net_list_adj.detach().numpy(), 'b^', label = 'Adj Frob')
-    ax.plot(n, net_list_chr.detach().numpy(), 'gx', label = 'Chordal Sqr')
-    ax.plot(n, net_list_amt.detach().numpy(), 'y*', label = 'A-Matrix')
+    #ax.plot(n, net_list_chr.detach().numpy(), 'y*', label = 'Chordal Sqr')
+    ax.plot(n, net_list_amt.detach().numpy(), 'gx', label = 'A-Matrix')
 
+    ax.set_title('Angle Differences via different training method')
     ax.set_xlabel('Index of Point Cloud')
     ax.set_ylabel('Differences in Angle')
     ax.legend()

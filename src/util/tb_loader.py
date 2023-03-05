@@ -56,16 +56,3 @@ def many_logs2pandas(event_paths):
             else:
                 all_logs = all_logs.append(log, ignore_index=True)
     return all_logs
-
-
-folder = "/Users/clin/Documents/pointnet_out/tb_adj_1k_0/"
-event_name = "events.out.tfevents.1677261140.workergpu018.2730214.0"
-
-path = folder + event_name
-
-def main():
-    df = tflog2pandas(path)
-
-
-if __name__ == "__main__":
-    main()
