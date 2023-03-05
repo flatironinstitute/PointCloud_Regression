@@ -46,7 +46,6 @@ class ModelNetDataset(Dataset):
     def __getitem__(self, index: int):
         orig_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
         random_indices = torch.randperm(len(orig_cloud))
-        print("check num sample: ",self.num_sample)
         num_points = int(self.num_sample)
         picked_indices = random_indices[:num_points]  
         source_cloud = orig_cloud[picked_indices]
@@ -61,6 +60,9 @@ class ModelNetDataset(Dataset):
         target_cloud = rotate_cloud + noise
 
         concatenate_cloud = torch.empty(2, num_points, 3, dtype=torch.float32)
+        print("shape of source: ", source_cloud.shape)
+        print("shape of target: ", target_cloud.shape)
+        print("shape of concatenation: ", concatenate_cloud.shape)
 
         concatenate_cloud[0,:,:] = source_cloud
         concatenate_cloud[1,:,:] = target_cloud
