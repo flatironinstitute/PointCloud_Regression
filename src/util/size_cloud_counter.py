@@ -19,3 +19,5 @@ def main():
 
     print("the min size of cloud is: ", min_size)
 
+if __name__ == '__main__':
+    main()
