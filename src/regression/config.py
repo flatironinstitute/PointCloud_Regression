@@ -17,7 +17,7 @@ class TrainingDataConfig:
     #option for model net
     category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
     sigma: float = 0.01
-    num_points: int = 8000
+    num_points: int = 1000
     model_net: bool = False
 
 

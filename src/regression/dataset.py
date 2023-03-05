@@ -45,9 +45,7 @@ class ModelNetDataset(Dataset):
 
     def __getitem__(self, index: int):
         orig_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
-        if len(orig_cloud) < self.num_sample:
-            return None
-            
+
         random_indices = torch.randperm(len(orig_cloud))
         num_points = int(self.num_sample)
         picked_indices = random_indices[:num_points]  
