@@ -65,8 +65,8 @@ class ModelNetDataset(Dataset):
         
         print("shape of concatenation: ", concatenate_cloud.shape)
 
-        concatenate_cloud[0,:,:] = source_cloud
-        concatenate_cloud[1,:,:] = target_cloud
+        concatenate_cloud[0,:,:] = source_cloud.unsqueeze(0)
+        concatenate_cloud[1,:,:] = target_cloud.unsqueeze(0)
 
         return concatenate_cloud, torch.as_tensor(r.as_quat(),dtype=torch.float32)
 
