@@ -46,9 +46,11 @@ class ModelNetDataset(Dataset):
     def __getitem__(self, index: int):
         orig_cloud = torch.as_tensor(F.read_off_file(self.all_files[index]), dtype=torch.float32)
         random_indices = torch.randperm(len(orig_cloud))
+        print("check num sample: ",self.num_sample)
+        print("check num sample type: ",self.num_sample.type)
         picked_indices = random_indices[:self.num_sample]  
         source_cloud = orig_cloud[picked_indices]
-        
+
         curr_rot = generate_random_quat()
         r = R.from_quat(curr_rot)
         rot_mat = r.as_matrix()
