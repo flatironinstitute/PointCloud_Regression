@@ -11,13 +11,12 @@ def main():
     top_folder = args.top_path
     file_list = F.list_files_in_dir(top_folder)
 
-    min_size = float("inf")
+    sizes = []
     for f in file_list:
         curr_vert = F.read_off_file(f)
-        print("size of cloud is: ", len(curr_vert))
-        min_size = min(min_size, len(curr_vert))
+        sizes.append(len(curr_vert))
+    np.savetxt('cloud_size.txt',sizes)
 
-    print("the min size of cloud is: ", min_size)
 
 if __name__ == '__main__':
     main()
