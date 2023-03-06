@@ -54,14 +54,15 @@ class PointNetTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
-
+        print("length of cloud batch: ", len(cloud))
+        print("length of quat batch: ", len(quat))
         #loss can also wrap up separately for different options
         network_option = self.cf.model_config.adj_option
         if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat)
             print("shape of predicted adj: ", adj_pred.shape)
-            print("shape of g.t. adj: ", adj_pred.shape)
+            print("shape of g.t. adj: ", adj_quat.shape)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
 
             #add constrain if specified
