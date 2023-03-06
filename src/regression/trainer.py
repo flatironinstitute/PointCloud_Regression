@@ -54,16 +54,11 @@ class PointNetTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
-        print("shape of cloud batch: ", cloud.shape)
-        print("shape of quat batch: ", quat.shape)
         #loss can also wrap up separately for different options
         network_option = self.cf.model_config.adj_option
         if network_option == "adjugate":
-            print("shape of predicted vector: ", pred.shape)
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat)
-            print("shape of predicted adj: ", adj_pred.shape)
-            print("shape of g.t. adj: ", adj_quat.shape)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
 
             #add constrain if specified
@@ -76,8 +71,6 @@ class PointNetTrainer(pl.LightningModule):
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":
             anti_quat = A.vec_to_quat(pred)
-            print("shape of predicted anti-quat: ", anti_quat.shape)
-            print("shape of g.t. quat: ", quat.shape)
             loss = M.chordal_square_loss(anti_quat, quat)
             self.training_log(batch, anti_quat, quat, loss, batch_idx)
         else:
@@ -130,7 +123,8 @@ class PointNetDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         if self.config.model_net:
             self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
-                                    self.config.category, self.config.num_points, self.config.sigma)
+                                    self.config.category, self.config.num_points, 
+                                    self.config.sigma,self.config.num_rot)
         else:
             self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
 
@@ -182,7 +176,7 @@ def main(config: cf.PointNetTrainConfig):
         else:
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
         
-        logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
+        logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
 
 
     

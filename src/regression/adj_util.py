@@ -50,7 +50,7 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     """
     if vec.dim() < 2:
         vec.unsqueeze_(dim = 0)
-    print("vec to adj has shape: ", vec.shape)
+
     idx = torch.triu_indices(4,4)
     adj = vec.new_zeros(vec.shape[0],4,4)
     adj[:,idx[0],idx[1]] = vec
@@ -69,5 +69,5 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     _, evs = torch.symeig(adj, eigenvectors=True)
     if evs.dim() < 3:
         evs.unsqueeze_(dim = 0)
-    print("evs has shape: ", evs.shape)
+
     return evs[:,:,0]#.squeeze()

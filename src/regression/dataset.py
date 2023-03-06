@@ -31,7 +31,8 @@ class ModelNetDataset(Dataset):
     """
     Dataset to load ModelNet40 mesh data
     """
-    def __init__(self, base_path: str, category_list: list, num_sample: int, sigma: float):
+    def __init__(self, base_path: str, category_list: list, num_sample: int, 
+                sigma: float, num_rot: int):
         all_files = []
         for c in category_list:
             curr_path = "/".join([base_path, c, "train"])
@@ -41,17 +42,20 @@ class ModelNetDataset(Dataset):
         self.select_files = []
         for f in all_files:
             curr_vert = F.read_off_file(f)
-            if len(curr_vert) < num_sample:
+            if len(curr_vert) != num_sample:
                 continue
             self.select_files.append(f)
+
         self.sigma =sigma
         self.num_sample = num_sample
+        self.num_rot = num_rot
 
     def __len__(self):
-        return len(self.select_files)
+        return len(self.num_rot)
 
     def __getitem__(self, index: int):
-        orig_cloud = torch.as_tensor(F.read_off_file(self.select_files[index]), dtype=torch.float32)
+        random_pick = np.random.randint(len(self.select_files))
+        orig_cloud = torch.as_tensor(F.read_off_file(self.select_files[random_pick]), dtype=torch.float32)
 
         random_indices = torch.randperm(len(orig_cloud))
         num_points = int(self.num_sample)
