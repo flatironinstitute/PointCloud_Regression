@@ -15,6 +15,7 @@ from regression.model import PointNet
 import regression.metric as M
 import regression.adj_util as A
 from regression.dataset import SimulatedDataset, ModelNetDataset
+from regression.penalties import penalty_sum
 
 class PointNetTrainer(pl.LightningModule):
     hparams: cf.PointNetTrainConfig
@@ -63,9 +64,7 @@ class PointNetTrainer(pl.LightningModule):
 
             #add constrain if specified
             if self.cf.constrain:
-                selected_entries = [0, 4, 7, 9]
-                norm_sq = torch.sum(pred[:, selected_entries], dim=1)
-                norm_penalty = torch.mean((norm_sq - 1)**2)
+                norm_penalty = penalty_sum(pred)
                 loss = loss + self.cf.cnstr_pre*norm_penalty
 
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
