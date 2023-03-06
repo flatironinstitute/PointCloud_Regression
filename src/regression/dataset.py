@@ -51,7 +51,7 @@ class ModelNetDataset(Dataset):
         self.num_rot = num_rot
 
     def __len__(self):
-        return len(self.num_rot)
+        return self.num_rot
 
     def __getitem__(self, index: int):
         random_pick = np.random.randint(len(self.select_files))
