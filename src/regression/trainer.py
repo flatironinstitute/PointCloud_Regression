@@ -60,6 +60,8 @@ class PointNetTrainer(pl.LightningModule):
         if network_option == "adjugate":
             adj_pred = A.vec_to_adj(pred)
             adj_quat = A.batch_quat_to_adj(quat)
+            print("shape of predicted adj: ", adj_pred.shape)
+            print("shape of g.t. adj: ", adj_pred.shape)
             loss = M.frobenius_norm_loss(adj_pred, adj_quat)
 
             #add constrain if specified
@@ -72,6 +74,8 @@ class PointNetTrainer(pl.LightningModule):
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":
             anti_quat = A.vec_to_quat(pred)
+            print("shape of predicted anti-quat: ", adj_quat.shape)
+            print("shape of g.t. quat: ", quat.shape)
             loss = M.chordal_square_loss(anti_quat, quat)
             self.training_log(batch, anti_quat, quat, loss, batch_idx)
         else:
