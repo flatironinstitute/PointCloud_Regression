@@ -70,4 +70,4 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     if evs.dim() < 3:
         evs.unsqueeze_(dim = 0)
     print("evs has shape: ", evs.shape)
-    return evs[:,:,0].squeeze()
+    return evs[:,:,0]#.squeeze()
