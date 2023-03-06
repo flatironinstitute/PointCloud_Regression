@@ -55,7 +55,7 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     adj = vec.new_zeros(vec.shape[0],4,4)
     adj[:,idx[0],idx[1]] = vec
     adj[:,idx[1],idx[0]] = vec
-    return adj.squeeze()
+    return adj#.squeeze()
 
 def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     """
