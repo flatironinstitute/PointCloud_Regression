@@ -49,7 +49,7 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     to the adjugate matrices; equivalent to [Avec to A]
     """
     if vec.dim() < 2:
-        vec.unsqueeze(dim = 0)
+        vec.unsqueeze_(dim = 0)
 
     idx = torch.triu_indices(4,4)
     adj = vec.new_zeros(vec.shape[0],4,4)
@@ -67,4 +67,6 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     """
     adj = vec_to_adj(vec)
     _, evs = torch.symeig(adj, eigenvectors=True)
+    if evs.dim() < 3:
+        evs.unsqueeze_(dim = 0)
     return evs[:,:,0].squeeze()
