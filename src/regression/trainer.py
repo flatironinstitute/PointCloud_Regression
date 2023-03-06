@@ -76,7 +76,7 @@ class PointNetTrainer(pl.LightningModule):
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":
             anti_quat = A.vec_to_quat(pred)
-            print("shape of predicted anti-quat: ", adj_quat.shape)
+            print("shape of predicted anti-quat: ", anti_quat.shape)
             print("shape of g.t. quat: ", quat.shape)
             loss = M.chordal_square_loss(anti_quat, quat)
             self.training_log(batch, anti_quat, quat, loss, batch_idx)
