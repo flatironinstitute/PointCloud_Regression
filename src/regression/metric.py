@@ -62,6 +62,8 @@ def frobenius_norm_loss(adj_mat_src: torch.Tensor, adj_mat_trg: torch.Tensor, re
     source and the target adjugate matrix
     both should be batches of 4x4 matrix
     """
+    print("shape of predicted adj_src: ", adj_mat_src.shape)
+    print("shape of g.t. adj_trg: ", adj_mat_trg.shape)
     assert(adj_mat_src.shape == adj_mat_trg.shape)
 
     if adj_mat_src.dim() < 3:
