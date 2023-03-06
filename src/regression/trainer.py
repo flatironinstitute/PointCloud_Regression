@@ -124,7 +124,8 @@ class PointNetDataModule(pl.LightningDataModule):
         if self.config.model_net:
             self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
                                     self.config.category, self.config.num_points, 
-                                    self.config.sigma,self.config.num_rot)
+                                    self.config.sigma,self.config.num_rot,
+                                    self.config.range_max, self.config.range_min)
         else:
             self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
 
