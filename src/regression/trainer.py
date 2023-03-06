@@ -71,7 +71,7 @@ class PointNetTrainer(pl.LightningModule):
                 selected_entries = [0, 4, 7, 9]
                 norm_sq = torch.sum(pred[:, selected_entries], dim=1)
                 norm_penalty = torch.mean((norm_sq - 1)**2)
-                loss = loss + norm_penalty
+                loss = loss + self.cf.cnstr_pre*norm_penalty
 
             self.training_log(batch, adj_pred, quat, loss, batch_idx)
         elif network_option == "a-matrix":

@@ -49,6 +49,7 @@ class PointNetTrainConfig:
     num_gpus: int = 1
     log_every: int = 1
     constrain: bool = False
+    cnstr_pre: float = 1.0
 
 @dataclasses.dataclass
 class TestConfig(PointNetTrainConfig):
