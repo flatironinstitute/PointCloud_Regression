@@ -15,7 +15,7 @@ def main():
     for f in file_list:
         curr_vert = F.read_off_file(f)
         sizes.append(len(curr_vert))
-        if 40000 <= len(curr_vert) <= 45000:
+        if 30000 <= len(curr_vert) <= 35000:
             print("size of ", f[-8:-4], " is ", len(curr_vert))
     np.savetxt('cloud_size.txt',sizes)
 
