@@ -1,5 +1,15 @@
 import numpy as np
 import torch
+from enum import Enum
+from abc import ABC, abstractmethod
+
+class Loss(Enum):
+    frobenius, chordal_quat, chordal_amat, six_d = 1, 2, 3, 4 
+
+class LossFn(ABC):
+    @abstractmethod   
+    def compute_loss(self, q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
+        pass
 
 def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
@@ -72,3 +82,4 @@ def frobenius_norm_loss(adj_mat_src: torch.Tensor, adj_mat_trg: torch.Tensor, re
     losses = (adj_mat_src - adj_mat_trg).norm(dim = [1,2])
     loss = losses.mean() if reduce else losses
     return loss
+
