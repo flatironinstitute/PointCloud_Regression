@@ -42,11 +42,14 @@ class PointNetTrainer(pl.LightningModule):
         net_option = self.cf.model_config.adj_option
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
-            pred_quat = A.batch_adj_to_quat(pred)
-            angle_diff = M.quat_angle_diff(pred_quat, quat)
+            #pred_quat = A.batch_adj_to_quat(pred)
+            angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/a-mat quat chordal loss', loss)
+        elif net_option == "sid-d":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('train/6d quat frob loss', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/chordal_square', loss)
@@ -57,35 +60,42 @@ class PointNetTrainer(pl.LightningModule):
         pred = self(cloud)
         #loss can also wrap up separately for different options
         network_option = self.cf.model_config.adj_option
-        if network_option == "adjugate":
-            adj_pred = A.vec_to_adj(pred)
-            adj_quat = A.batch_quat_to_adj(quat)
-            loss = M.frobenius_norm_loss(adj_pred, adj_quat)
+        loss_create = M.LossFactory()
+        loss_computer = loss_create.create(network_option)
 
-            #add constrain if specified
-            if self.cf.constrain:
-                norm_penalty = penalty_sum(pred)
-                loss = loss + self.cf.cnstr_pre*norm_penalty
+        loss, pred_quat = loss_computer.compute_loss(pred, quat)
+        # if network_option == "adjugate":
+        #     adj_pred = A.vec_to_adj(pred)
+        #     adj_quat = A.batch_quat_to_adj(quat)
+        #     loss = M.frobenius_norm_loss(adj_pred, adj_quat)
 
-            self.training_log(batch, adj_pred, quat, loss, batch_idx)
-        elif network_option == "a-matrix":
-            anti_quat = A.vec_to_quat(pred)
-            loss = M.chordal_square_loss(anti_quat, quat)
-            self.training_log(batch, anti_quat, quat, loss, batch_idx)
-        else:
-            loss = M.chordal_square_loss(pred, quat)
-            self.training_log(batch, pred, quat, loss, batch_idx)
+        #     #add constrain if specified
+        #     if self.cf.constrain:
+        #         norm_penalty = penalty_sum(pred)
+        #         loss = loss + self.cf.cnstr_pre*norm_penalty
+
+        #     self.training_log(batch, adj_pred, quat, loss, batch_idx)
+        # elif network_option == "a-matrix":
+        #     anti_quat = A.vec_to_quat(pred)
+        #     loss = M.chordal_square_loss(anti_quat, quat)
+        #     self.training_log(batch, anti_quat, quat, loss, batch_idx)
+        # else:
+        #     loss = M.chordal_square_loss(pred, quat)
+        #     self.training_log(batch, pred, quat, loss, batch_idx)
+        self.training_log(batch, pred_quat, quat, loss, batch_idx)
         return loss
 
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         net_option = self.cf.model_config.adj_option
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
-            pred_quat = A.batch_adj_to_quat(pred)
-            angle_diff = M.quat_angle_diff(pred_quat, quat)
+            angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/a-mat quat chordal loss', loss)
+        elif net_option == "sid-d":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('val/6d quat frob loss', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/chordal_square', loss)
@@ -96,18 +106,11 @@ class PointNetTrainer(pl.LightningModule):
         pred = self(cloud)
 
         network_option = self.cf.model_config.adj_option
-        if network_option == "adjugate":
-            adj_pred = A.vec_to_adj(pred)
-            adj_quat = A.batch_quat_to_adj(quat) #convert g.t. quat to adj for the loss calc
-            loss = M.frobenius_norm_loss(adj_pred, adj_quat)
-            self.validation_log(batch, adj_pred, quat, loss, batch_idx)
-        elif network_option == "a-matrix":
-            anti_quat = A.vec_to_quat(pred)
-            loss = M.chordal_square_loss(anti_quat, quat)
-            self.validation_log(batch, anti_quat, quat, loss, batch_idx)
-        else:
-            loss = M.chordal_square_loss(pred, quat)
-            self.validation_log(batch, pred, quat, loss, batch_idx)
+        loss_create = M.LossFactory()
+        loss_computer = loss_create.create(network_option)
+
+        loss, pred_quat = loss_computer.compute_loss(pred, quat)
+        self.validation_log(batch, pred_quat, quat, loss, batch_idx)
         return loss
 
     def configure_optimizers(self):
@@ -173,6 +176,8 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frob_loss"]}')
         elif config.model_config.adj_option == "a-matrix":
             logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
+        elif config.model_config.adj_option == "six-d":
+            logger.info(f'Finished training. Final Frobenius of 6D: {trainer.logged_metrics["train/6d quat frob loss"]}')
         else:
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
         

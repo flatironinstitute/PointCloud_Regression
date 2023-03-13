@@ -9,7 +9,12 @@ class PointNet(nn.Module):
         adj_option: whether to train it with adjugate matrix
         """
         super().__init__()
-        self.out_dim = 4 if adj_option == "chordal" else 10
+        self.out_dim = 10
+        if adj_option == "six-d":
+            self.out_dim = 6 
+        elif adj_option == "chordal":
+            self.out_dim = 4
+            
         self.feat_net = PointFeatCNN(hidden_size, batch_norm) #feature net directly output dim of hidden layer
         self.hidden_mlp = nn.Sequential(
                                     nn.Linear(hidden_size, 256),

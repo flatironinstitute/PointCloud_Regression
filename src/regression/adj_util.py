@@ -71,3 +71,37 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
         evs.unsqueeze_(dim = 0)
 
     return evs[:,:,0]#.squeeze()
+
+# N x 3 -> N x 3 (unit norm)
+def normalize_vectors(vecs):
+    if vecs.dim() < 2:
+        vecs = vecs.unsqueeze(dim=0)
+    return vecs/vecs.norm(dim=1, keepdim=True, p=2)
+    
+# N x 3, N x 3 -> N x 3 (cross product)
+def cross_product(u, v):
+    assert(u.dim() == v.dim())
+    if u.dim() < 2:
+        u = u.unsqueeze(dim=0)
+        v = v.unsqueeze(dim=0)
+    batch = u.shape[0]
+    i = u[:,1]*v[:,2] - u[:,2]*v[:,1]
+    j = u[:,2]*v[:,0] - u[:,0]*v[:,2]
+    k = u[:,0]*v[:,1] - u[:,1]*v[:,0]
+    return torch.cat((i.view(batch,1), j.view(batch,1), k.view(batch,1)),1)
+
+def sixdim_to_rotmat(sixdim: torch.Tensor) -> torch.Tensor:
+    if sixdim.dim() < 2:
+        sixdim = sixdim.unsqueeze(dim=0)
+    x_raw = sixdim[:,0:3]#batch*3
+    y_raw = sixdim[:,3:6]#batch*3
+        
+    x = normalize_vectors(x_raw)
+    z = cross_product(x,y_raw) 
+    z = normalize_vectors(z)
+    y = cross_product(z,x)
+    x = x.view(-1,3,1)
+    y = y.view(-1,3,1)
+    z = z.view(-1,3,1)
+    rotmat = torch.cat((x,y,z), 2) #batch*3*3
+    return rotmat

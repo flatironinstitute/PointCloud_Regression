@@ -2,14 +2,82 @@ import numpy as np
 import torch
 from enum import Enum
 from abc import ABC, abstractmethod
+import regression.adj_util as A
+import regression.config as cf
+import regression.penalties as P
 
 class Loss(Enum):
     frobenius, chordal_quat, chordal_amat, six_d = 1, 2, 3, 4 
 
 class LossFn(ABC):
     @abstractmethod   
-    def compute_loss(self, q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
+                        config: cf.PointNetTrainConfig) -> torch.Tensor:
         pass
+
+class FrobneiusLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
+                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+        adj_pred = A.vec_to_adj(predict)
+        adj_quat = A.batch_quat_to_adj(q_target)
+        loss = frobenius_norm_loss(adj_pred, adj_quat)
+        if config.constrain:
+            norm_penalty = P.penalty_sum(predict)
+            loss = loss + config.cnstr_pre*norm_penalty
+        q_pred = A.batch_adj_to_quat(adj_pred)
+        return loss, q_pred
+    #Singleton pattern
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(FrobneiusLoss, cls).__new__(cls)
+        return cls.instance
+
+class AMatirxLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
+                        config:cf.PointNetTrainConfig) -> torch.Tensor:
+        anti_quat = A.vec_to_quat(predict)
+        loss = chordal_square_loss(anti_quat, q_target)
+        return loss, anti_quat
+    #Singleton pattern
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(AMatirxLoss, cls).__new__(cls)
+        return cls.instance
+
+class ChordalLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor, 
+                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+        loss = chordal_square_loss(predict, q_target)
+        return loss, predict
+    #Singleton pattern
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(ChordalLoss, cls).__new__(cls)
+        return cls.instance
+
+class SixDLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor, 
+                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+        rot_mat = A.sixdim_to_rotmat(predict)
+        mat_quat = A.batch_quat_to_adj(q_target)
+        loss = frobenius_norm_loss(rot_mat, mat_quat)
+        q_pred = A.rotmat_to_quat(rot_mat)
+        return loss, q_pred
+    #Singleton pattern
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(SixDLoss, cls).__new__(cls)
+        return cls.instance
+
+class LossFactory:
+    def create(self, loss_name):
+        switcher = {
+            'adjugate': FrobneiusLoss(),
+            'a-matrix': AMatirxLoss(),
+            'chordal': ChordalLoss(),
+            'six-d': SixDLoss()
+        }
+        return switcher.get(loss_name)
 
 def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
