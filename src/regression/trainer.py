@@ -63,7 +63,7 @@ class PointNetTrainer(pl.LightningModule):
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
 
-        loss, pred_quat = loss_computer.compute_loss(pred, quat)
+        loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
         # if network_option == "adjugate":
         #     adj_pred = A.vec_to_adj(pred)
         #     adj_quat = A.batch_quat_to_adj(quat)
@@ -109,7 +109,7 @@ class PointNetTrainer(pl.LightningModule):
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
 
-        loss, pred_quat = loss_computer.compute_loss(pred, quat)
+        loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
         self.validation_log(batch, pred_quat, quat, loss, batch_idx)
         return loss
 
