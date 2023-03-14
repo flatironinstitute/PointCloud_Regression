@@ -105,3 +105,127 @@ def sixdim_to_rotmat(sixdim: torch.Tensor) -> torch.Tensor:
     z = z.view(-1,3,1)
     rotmat = torch.cat((x,y,z), 2) #batch*3*3
     return rotmat
+
+def rotmat_to_quat(mat, ordering='xyzw'):
+    """Convert a rotation matrix to a unit length quaternion.
+        Valid orderings are 'xyzw' and 'wxyz'.
+    """
+    if mat.dim() < 3:
+        R = mat.unsqueeze(dim=0)
+    else:
+        R = mat
+
+    assert(R.shape[1] == R.shape[2])
+    assert(R.shape[1] == 3)
+
+    #Row first operation
+    R = R.transpose(1,2)
+    q = R.new_empty((R.shape[0], 4))
+
+    cond1_mask = R[:, 2, 2] < 0.
+    cond1a_mask = R[:, 0, 0] > R[:, 1, 1]
+    cond1b_mask = R[:, 0, 0] < -R[:, 1, 1]
+
+    if ordering=='xyzw':
+        v_ind = torch.arange(0,3)
+        w_ind = 3
+    else:
+        v_ind = torch.arange(1,4)
+        w_ind = 0    
+
+    mask = cond1_mask & cond1a_mask
+    if mask.any():
+        t = 1 + R[mask, 0, 0] - R[mask, 1, 1] - R[mask, 2, 2]
+        q[mask, w_ind] =  R[mask, 1, 2]- R[mask, 2, 1]
+        q[mask, v_ind[0]] = t
+        q[mask, v_ind[1]] = R[mask, 0, 1] + R[mask, 1, 0]
+        q[mask, v_ind[2]] = R[mask, 2, 0] + R[mask, 0, 2]
+        q[mask, :] *= 0.5 / torch.sqrt(t.unsqueeze(dim=1))
+
+    mask = cond1_mask & cond1a_mask.logical_not()
+    if mask.any():
+        t = 1 - R[mask,0, 0] + R[mask,1, 1] - R[mask,2, 2]
+        q[mask, w_ind] =  R[mask,2, 0]-R[mask,0, 2]
+        q[mask, v_ind[0]] = R[mask,0, 1]+R[mask,1, 0]
+        q[mask, v_ind[1]] = t
+        q[mask, v_ind[2]] = R[mask,1, 2]+R[mask,2, 1]
+        q[mask, :] *= 0.5 / torch.sqrt(t.unsqueeze(dim=1))
+
+    mask = cond1_mask.logical_not() & cond1b_mask
+    if mask.any():
+        t = 1 - R[mask,0, 0] - R[mask,1, 1] + R[mask,2, 2]
+        q[mask, w_ind] =  R[mask,0, 1]-R[mask,1, 0]
+        q[mask, v_ind[0]] = R[mask,2, 0]+R[mask,0, 2]
+        q[mask, v_ind[1]] = R[mask,1, 2]+R[mask,2, 1]
+        q[mask, v_ind[2]] = t
+        q[mask, :] *= 0.5 / torch.sqrt(t.unsqueeze(dim=1))
+
+    mask = cond1_mask.logical_not() & cond1b_mask.logical_not()
+    if mask.any():
+        t = 1 + R[mask, 0, 0] + R[mask,1, 1] + R[mask,2, 2]
+        q[mask, w_ind] = t
+        q[mask, v_ind[0]] = R[mask,1, 2]-R[mask,2, 1]
+        q[mask, v_ind[1]] = R[mask,2, 0]-R[mask,0, 2]
+        q[mask, v_ind[2]] = R[mask,0, 1]-R[mask,1, 0]
+        q[mask, :] *= 0.5 / torch.sqrt(t.unsqueeze(dim=1))
+    
+    return q.squeeze()
+
+def quat_to_rotmat(quat, ordering='xyzw'):
+    """Form a rotation matrix from a unit length quaternion.
+        Valid orderings are 'xyzw' and 'wxyz'.
+    """
+    if quat.dim() < 2:
+        quat = quat.unsqueeze(dim=0)
+
+    if not allclose(quat.norm(p=2, dim=1), 1.):
+        print("Warning: Some quaternions not unit length ... normalizing.")
+        quat = quat/quat.norm(p=2, dim=1, keepdim=True)
+
+    if ordering is 'xyzw':
+        qx = quat[:, 0]
+        qy = quat[:, 1]
+        qz = quat[:, 2]
+        qw = quat[:, 3]
+    elif ordering is 'wxyz':
+        qw = quat[:, 0]
+        qx = quat[:, 1]
+        qy = quat[:, 2]
+        qz = quat[:, 3]
+    else:
+        raise ValueError(
+            "Valid orderings are 'xyzw' and 'wxyz'. Got '{}'.".format(ordering))
+
+    # Form the matrix
+    mat = quat.new_empty(quat.shape[0], 3, 3)
+
+    qx2 = qx * qx
+    qy2 = qy * qy
+    qz2 = qz * qz
+
+    mat[:, 0, 0] = 1. - 2. * (qy2 + qz2)
+    mat[:, 0, 1] = 2. * (qx * qy - qw * qz)
+    mat[:, 0, 2] = 2. * (qw * qy + qx * qz)
+
+    mat[:, 1, 0] = 2. * (qw * qz + qx * qy)
+    mat[:, 1, 1] = 1. - 2. * (qx2 + qz2)
+    mat[:, 1, 2] = 2. * (qy * qz - qw * qx)
+
+    mat[:, 2, 0] = 2. * (qx * qz - qw * qy)
+    mat[:, 2, 1] = 2. * (qw * qx + qy * qz)
+    mat[:, 2, 2] = 1. - 2. * (qx2 + qy2)
+
+    return mat.squeeze_()
+
+def allclose(mat1, mat2, tol=1e-6):
+    """Check if all elements of two tensors are close within some tolerance.
+    Either tensor can be replaced by a scalar.
+    """
+    return isclose(mat1, mat2, tol).all()
+
+
+def isclose(mat1, mat2, tol=1e-6):
+    """Check element-wise if two tensors are close within some tolerance.
+    Either tensor can be replaced by a scalar.
+    """
+    return (mat1 - mat2).abs_().lt(tol)

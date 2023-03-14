@@ -6,6 +6,7 @@ import regression.adj_util as A
 import regression.config as cf
 import regression.penalties as P
 
+###Factory Pattern of the loss functions###
 class Loss(Enum):
     frobenius, chordal_quat, chordal_amat, six_d = 1, 2, 3, 4 
 
@@ -59,7 +60,7 @@ class SixDLoss(LossFn):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor, 
                         config: cf.PointNetTrainConfig) -> torch.Tensor:
         rot_mat = A.sixdim_to_rotmat(predict)
-        mat_quat = A.batch_quat_to_adj(q_target)
+        mat_quat = A.quat_to_rotmat(q_target)
         loss = frobenius_norm_loss(rot_mat, mat_quat)
         q_pred = A.rotmat_to_quat(rot_mat)
         return loss, q_pred
@@ -78,6 +79,19 @@ class LossFactory:
             'six-d': SixDLoss()
         }
         return switcher.get(loss_name)
+
+###helper functions of loss, and angle differences###
+def quar_cosine_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
+    """
+    Calculate batch of quaternion cosine differences
+    """
+    assert q_a.shape == q_b.shape
+    assert q_a.shape[-1] == q_b.shape[-1]
+
+    batch_dot = torch.bmm(q_a.unsqueeze(1), q_b.unsqueeze(2)).squeeze()
+    batch_q_diff = torch.abs(batch_dot)
+
+    return batch_q_diff
 
 def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
