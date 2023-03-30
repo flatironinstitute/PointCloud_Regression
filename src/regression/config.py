@@ -53,6 +53,7 @@ class PointNetTrainConfig:
     log_every: int = 1
     constrain: bool = False
     cnstr_pre: float = 1.0
+    category: List[int] = dataclasses.field(default_factory=lambda:[1])
 
 @dataclasses.dataclass
 class TestConfig(PointNetTrainConfig):

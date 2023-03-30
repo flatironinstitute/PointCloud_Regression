@@ -23,7 +23,7 @@ class FrobneiusLoss(LossFn):
         adj_quat = A.batch_quat_to_adj(q_target)
         loss = frobenius_norm_loss(adj_pred, adj_quat)
         if config.constrain:
-            norm_penalty = P.penalty_sum(predict)
+            norm_penalty = P.penalty_sum(predict,config.select_constrain)
             loss = loss + config.cnstr_pre*norm_penalty
         q_pred = A.batch_adj_to_quat(adj_pred)
         return loss, q_pred
@@ -81,7 +81,7 @@ class LossFactory:
         return switcher.get(loss_name)
 
 ###helper functions of loss, and angle differences###
-def quar_cosine_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
+def quat_cosine_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
     Calculate batch of quaternion cosine differences
     """

@@ -64,24 +64,7 @@ class PointNetTrainer(pl.LightningModule):
         loss_computer = loss_create.create(network_option)
 
         loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
-        # if network_option == "adjugate":
-        #     adj_pred = A.vec_to_adj(pred)
-        #     adj_quat = A.batch_quat_to_adj(quat)
-        #     loss = M.frobenius_norm_loss(adj_pred, adj_quat)
-
-        #     #add constrain if specified
-        #     if self.cf.constrain:
-        #         norm_penalty = penalty_sum(pred)
-        #         loss = loss + self.cf.cnstr_pre*norm_penalty
-
-        #     self.training_log(batch, adj_pred, quat, loss, batch_idx)
-        # elif network_option == "a-matrix":
-        #     anti_quat = A.vec_to_quat(pred)
-        #     loss = M.chordal_square_loss(anti_quat, quat)
-        #     self.training_log(batch, anti_quat, quat, loss, batch_idx)
-        # else:
-        #     loss = M.chordal_square_loss(pred, quat)
-        #     self.training_log(batch, pred, quat, loss, batch_idx)
+        
         self.training_log(batch, pred_quat, quat, loss, batch_idx)
         return loss
 

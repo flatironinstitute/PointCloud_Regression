@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import collections
+from typing import Dict, Callable, List
 
 def diag_sum(vec: torch.Tensor) -> torch.Tensor:
     "q00 + q11 + q22 + q33 == 1"
@@ -51,8 +53,16 @@ def dot_23(vec: torch.Tensor) -> torch.Tensor:
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
-def penalty_sum(vec: torch.Tensor) -> torch.Tensor:
-    total = diag_sum(vec) + dot_01(vec) + dot_02(vec) + dot_03(vec) + dot_13(vec) + dot_23(vec) + dot_12(vec)
+def constrain_dict() -> Dict[int, Callable[[torch.Tensor], torch.Tensor]]:
+    return {1:diag_sum, 2:dot_01, 3:dot_02, 4:dot_03,
+            5:dot_12, 6:dot_13, 7:dot_23}
+
+
+def penalty_sum(vec: torch.Tensor, apply_constrain: List[int]) -> torch.Tensor:
+    total = 0
+    dict_ = constrain_dict()
+    for idx in apply_constrain:
+        total += dict_[idx](vec)
 
     return total
 
