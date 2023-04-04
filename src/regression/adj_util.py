@@ -23,7 +23,7 @@ def batch_quat_to_adj(q_batch:torch.Tensor) -> torch.Tensor:
     for i in range(len(q_batch)):
          curr_adj = quat_to_adj(q_batch[i])
          adj_batch[i] = curr_adj
-    #print("device of adj after batch conversion: ", adj_batch.device)
+
     return adj_batch
 
 def adj_to_quat(adj_mat: torch.Tensor) -> torch.Tensor:
