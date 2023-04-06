@@ -63,7 +63,7 @@ def adj_to_vec(adj: torch.Tensor) -> torch.Tensor:
     """
     batch = len(adj)
 
-    mask = torch.triu(torch.ones(4,4),device=adj.device)
+    mask = torch.triu(torch.ones(4,4,device=adj.device))
     upper_tri = torch.masked_select(adj, mask.bool())
     vectors = upper_tri.view(batch,10)
 
