@@ -57,7 +57,6 @@ def constrain_dict() -> Dict[int, Callable[[torch.Tensor], torch.Tensor]]:
     return {1:diag_sum, 2:dot_01, 3:dot_02, 4:dot_03,
             5:dot_12, 6:dot_13, 7:dot_23}
 
-
 def penalty_sum(vec: torch.Tensor, apply_constrain: List[int]) -> torch.Tensor:
     total = 0
     dict_ = constrain_dict()
