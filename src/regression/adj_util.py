@@ -57,6 +57,18 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     adj[:,idx[1],idx[0]] = vec
     return adj#.squeeze()
 
+def adj_to_vec(adj: torch.Tensor) -> torch.Tensor:
+    """
+    convert batch of adjugate matrix to 10 dim vector
+    """
+    batch = len(adj)
+
+    mask = torch.triu(torch.ones(4,4))
+    upper_tri = torch.masked_select(adj, mask.bool())
+    vectors = upper_tri.view(batch,10)
+
+    return vectors
+
 def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     """
     convert a vector to unit quaternion

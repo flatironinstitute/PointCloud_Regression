@@ -42,7 +42,8 @@ class PointNetTrainer(pl.LightningModule):
         net_option = self.cf.model_config.adj_option
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
-            self.log('train/learned adj', A.quat_to_adj(pred))
+            vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
+            self.log('train/learned adj', str(vectors.tolist()))
             self.log('train/g.t. adj', A.quat_to_adj(quat))
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
@@ -73,7 +74,8 @@ class PointNetTrainer(pl.LightningModule):
         net_option = self.cf.model_config.adj_option
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
-            self.log('val/learned adj', A.batch_quat_to_adj(pred))
+            vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
+            self.log('val/learned adj', str(vectors.tolist()))
             self.log('val/g.t. adj', A.quat_to_adj(quat))
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
