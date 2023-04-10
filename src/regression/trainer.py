@@ -6,7 +6,7 @@ import omegaconf
 import torch
 import torch.nn as nn
 import torch.utils.data
-import torch.utils.tensorboard
+import torch.utils.tensorboard as tb
 
 import pytorch_lightning as pl
 import dataclasses
@@ -43,7 +43,10 @@ class PointNetTrainer(pl.LightningModule):
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            self.log('train/learned adj', str(vectors.tolist()))
+            writer = tb.SummaryWriter()
+            writer.add_text('train/learned adj', str(vectors.tolist()))
+            writer.close()
+
             self.log('train/g.t. adj', A.quat_to_adj(quat))
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
@@ -75,7 +78,9 @@ class PointNetTrainer(pl.LightningModule):
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            self.log('val/learned adj', str(vectors.tolist()))
+            writer = tb.SummaryWriter()
+            writer.add_text('val/learned adj', str(vectors.tolist()))
+            writer.close()
             self.log('val/g.t. adj', A.quat_to_adj(quat))
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":

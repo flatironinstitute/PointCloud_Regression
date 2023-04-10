@@ -36,7 +36,7 @@ class OptimConfig:
 @dataclasses.dataclass
 class NetworkConfig:
     num_points: int = 100
-    num_out: int = 4
+    num_layer: int = 3
     hidden_size: int = 1024
     adj_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/six-d'
     batch_norm: bool = False
@@ -53,7 +53,7 @@ class PointNetTrainConfig:
     log_every: int = 1
     constrain: bool = False
     cnstr_pre: float = 1.0
-    category: List[int] = dataclasses.field(default_factory=lambda:[1])
+    select_constrain: List[int] = dataclasses.field(default_factory=lambda:[1])
 
 @dataclasses.dataclass
 class TestConfig(PointNetTrainConfig):

@@ -60,3 +60,36 @@ class PointFeatCNN(nn.Module):
     def forward(self, x):
         x = self.net(x)
         return x.squeeze()
+
+class FeedForward(nn.Module):
+    def __init__(self, num_layer:int, hidden_size:int, out_opt:str) -> None:
+        super().__init__()
+        
+        if out_opt == "adjugate":
+            out = 10
+        else:
+            out = 4
+
+        self.relu = nn.ReLU()
+        self.input_layer = nn.Linear(9,hidden_size)
+        
+        layers = []
+        for i in range(num_layer):
+            layers.append(nn.Linear(hidden_size, hidden_size))
+            layers.append(nn.ReLU())
+        self.hidden = nn.Sequential(*layers)
+
+        self.output_layer = nn.Linear(hidden_size,out)
+
+    def forward(self,x) -> torch.Tensor:
+        x_1 = x[:, 0, :, :].tranpose(1,2) #should in dim bx3xnum
+        x_2 = x[:, 1, :, :] #should in dim bxnumx3
+        batch = len(x)
+
+        cov_mat = torch.bmm(x_1, x_2).view(batch, -1)
+        
+        x_ = self.input_layer(cov_mat)
+        x_ = self.hidden(x_)
+        x_ = self.output_layer(x_)
+
+        return x_
