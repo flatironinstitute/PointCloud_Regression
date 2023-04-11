@@ -13,6 +13,9 @@ from regression.model import FeedForward
 import regression.metric as M
 import regression.adj_util as A
 
+from regression.dataset import SimulatedDataset, ModelNetDataset
+
+
 class FeedForwardTrainer(pl.LightningModule):
     hparams: cf.NetworkConfig
 
@@ -100,3 +103,78 @@ class FeedForwardTrainer(pl.LightningModule):
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.point_net.parameters(), lr=self.hparams.optim.learning_rate)
         return optim
+
+class FeedForwardDataModule(pl.LightningDataModule):
+    def __init__(self, config: cf.TrainingDataConfig, batch_size: int) -> None:
+        super().__init__()
+        self.config = config
+        self.batch_size = batch_size
+        if self.config.model_net:
+            self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
+                                    self.config.category, self.config.num_points, 
+                                    self.config.sigma,self.config.num_rot,
+                                    self.config.range_max, self.config.range_min)
+        else:
+            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
+
+        self.ds_train = None
+        self.ds_val = None
+
+    def setup(self, stage: str = None) -> None:
+        # Define steps that should be done on 
+        # every GPU, like splitting data, applying
+        # transforms etc.
+        if self.config.limit is not None:
+            limit = min(self.config.limit, len(self.ds))
+            self.ds, _ = torch.utils.data.random_split(self.ds, [limit, len(self.ds) - limit])
+
+        num_train_samples = int(len(self.ds) * self.config.train_prop)
+
+        self.ds_train, self.ds_val = torch.utils.data.random_split(
+            self.ds, [num_train_samples, len(self.ds) - num_train_samples],
+            torch.Generator().manual_seed(42)
+        )
+
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader(self.ds_train, self.batch_size, shuffle=True, num_workers=self.config.num_data_workers)
+
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(self.ds_val, self.batch_size, shuffle=False, num_workers=self.config.num_data_workers)
+
+
+@hydra.main(config_path=None, config_name='train', version_base='1.1' ) 
+def main(config: cf.PointNetTrainConfig):
+    logger = logging.getLogger(__name__)
+    trainer = pl.Trainer(
+        accelerator=config.device, 
+        devices=config.num_gpus,
+        log_every_n_steps=config.log_every,
+        max_epochs=config.num_epochs)
+    
+    data_config = config.data
+    model_config = config.model_config
+    dm = FeedForwardDataModule(data_config, config.batch_size)
+    model = FeedForwardTrainer(model_config)
+
+    trainer.fit(model,dm)
+
+    if trainer.is_global_zero:
+        if config.model_config.adj_option == "adjugate":
+            logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frob_loss"]}')
+        elif config.model_config.adj_option == "a-matrix":
+            logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
+        elif config.model_config.adj_option == "six-d":
+            logger.info(f'Finished training. Final Frobenius of 6D: {trainer.logged_metrics["train/6d quat frob loss"]}')
+        else:
+            logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        
+        logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
+
+
+    
+
+if __name__ == '__main__':
+    from hydra.core.config_store import ConfigStore
+    cs = ConfigStore()
+    cs.store('train', node=cf.PointNetTrainConfig)
+    main()
