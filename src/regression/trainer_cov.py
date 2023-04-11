@@ -101,7 +101,7 @@ class FeedForwardTrainer(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optim = torch.optim.AdamW(self.point_net.parameters(), lr=self.hparams.optim.learning_rate)
+        optim = torch.optim.AdamW(self.feed_forward.parameters(), lr=self.hparams.optim.learning_rate)
         return optim
 
 class FeedForwardDataModule(pl.LightningDataModule):
