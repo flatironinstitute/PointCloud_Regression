@@ -17,16 +17,17 @@ from regression.dataset import SimulatedDataset, ModelNetDataset
 
 
 class FeedForwardTrainer(pl.LightningModule):
-    hparams: cf.NetworkConfig
+    hparams: cf.PointNetTrainConfig
 
-    def __init__(self, config: cf.NetworkConfig) -> None:
+    def __init__(self, config: cf.PointNetTrainConfig) -> None:
         super().__init__()
         if not omegaconf.OmegaConf.is_config(config):
             config = omegaconf.OmegaConf.structured(config)
 
         self.save_hyperparameters(config)
-        self.feed_forward = FeedForward(config.num_layer,config.hidden_size,
-                                        config.adj_option)
+        self.feed_forward = FeedForward(config.model_config.num_layer,
+                                        config.model_config.hidden_size,
+                                        config.model_config.adj_option)
         self.cf = config
 
     def forward(self, x):
@@ -152,9 +153,8 @@ def main(config: cf.PointNetTrainConfig):
         max_epochs=config.num_epochs)
     
     data_config = config.data
-    model_config = config.model_config
     dm = FeedForwardDataModule(data_config, config.batch_size)
-    model = FeedForwardTrainer(model_config)
+    model = FeedForwardTrainer(config)
 
     trainer.fit(model,dm)
 
