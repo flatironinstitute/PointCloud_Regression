@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from typing import List
+import glob
 
 def list_files_in_dir(top_dir: str) -> list:
     """ method that lists all files of a given directory
@@ -27,3 +28,12 @@ def read_off_file(file_path: str) -> np.ndarray:
         vertices.append(curr_pt)
     vertices = np.array(vertices)
     return vertices
+
+def get_velo(file_name:str) -> np.ndarray:
+    points = np.fromfile(file_name, dtype=np.float32).reshape(-1, 4)
+    velo_file = points[:, :3]
+    return velo_file
+
+def get_all_bins(seq_path:str) -> List:
+    velo_bins = glob.glob(seq_path + '/*.bin')
+    return velo_bins

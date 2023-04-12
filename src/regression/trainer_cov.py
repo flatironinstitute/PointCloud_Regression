@@ -93,7 +93,7 @@ class FeedForwardTrainer(pl.LightningModule):
         cloud, quat = batch
         pred = self(cloud)
 
-        network_option = self.cf.adj_option
+        network_option = self.cf.model_config.adj_option
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
 

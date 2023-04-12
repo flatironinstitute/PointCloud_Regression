@@ -2,6 +2,7 @@ import numpy as np
 from typing import List
 from torch.utils.data import Dataset, DataLoader, sampler
 import os
+import glob
 import torch
 from simulator.cloud_from_random import generate_random_quat
 import regression.file_util as F
@@ -77,6 +78,20 @@ class ModelNetDataset(Dataset):
         concatenate_cloud[1,:,:] = target_cloud
 
         return concatenate_cloud, torch.as_tensor(r.as_quat(),dtype=torch.float32)
+
+class KittiOdometryDataset(Dataset):
+    """
+    Dataset to load kitti' velodyne lidar data of odometry
+    """
+    def __init__(self, base_path:str, seq_num:int) -> None:
+        super().__init__()
+        self.velo_path = F.get_all_bins(base_path + seq_num)
+
+    def __len__(self):
+        return len(self.velo_path)
+
+    def __getitem__(self, index: int):
+        return F.get_velo(self.velo_path[index])
 
 
 
