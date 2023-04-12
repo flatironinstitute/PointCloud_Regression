@@ -82,7 +82,7 @@ class FeedForward(nn.Module):
         self.output_layer = nn.Linear(hidden_size,out)
 
     def forward(self,x) -> torch.Tensor:
-        x_1 = x[:, 0, :, :].tranpose(1,2) #should in dim bx3xnum
+        x_1 = x[:, 0, :, :].transpose(1,2) #should in dim bx3xnum
         x_2 = x[:, 1, :, :] #should in dim bxnumx3
         batch = len(x)
 
