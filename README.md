@@ -1,6 +1,7 @@
 # PointCloud_Regression
 Point Cloud regression on simulated and ModelNet40 dataset.
 
+# Get started
 ### Use our architecture on the Jupyter Notebook 
 start from create a virtual environment, i.e.
 
@@ -8,7 +9,7 @@ start from create a virtual environment, i.e.
 
 in your terminal. Then activate the environment via:
 
-conda activate env_name`
+`conda activate env_name`
 
 In the environment, first install our package:
 
