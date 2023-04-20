@@ -31,11 +31,12 @@ def read_off_file(file_path: str) -> np.ndarray:
     return vertices
 
 ###read kitti's velodyne lidar###
+###calibration are in the image directory###
 def get_velo(file_name:str) -> np.ndarray:
     points = np.fromfile(file_name, dtype=np.float32).reshape(-1, 4)
-    velo_file = points[:, :3]
+    velo_file = points[:, :3] 
     return velo_file
 
 def get_all_bins(seq_path:str) -> List:
-    velo_bins = glob.glob(seq_path + '/*.bin')
+    velo_bins = sorted(glob.glob(seq_path + '/*.bin'))
     return velo_bins
