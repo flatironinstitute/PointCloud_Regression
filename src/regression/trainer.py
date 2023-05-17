@@ -48,7 +48,7 @@ class PointNetTrainer(pl.LightningModule):
             writer = tb.SummaryWriter()
             writer.add_text('train/learned adj', str(vectors.tolist()))
             writer.close()
-            
+
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
@@ -125,7 +125,7 @@ class PointNetDataModule(pl.LightningDataModule):
                                     self.config.sigma,self.config.num_rot,
                                     self.config.range_max, self.config.range_min)
         else:
-            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path))
+            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path),config.svd_mod)
 
         self.ds_train = None
         self.ds_val = None
