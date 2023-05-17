@@ -15,6 +15,11 @@ import regression.adj_util as A
 
 from regression.dataset import SimulatedDataset, ModelNetDataset
 
+"""
+@brief: a separate trainer for the input as the E-matrix of the point clouds;
+the architecture is the feed forward (FCN) model
+"""
+
 
 class FeedForwardTrainer(pl.LightningModule):
     hparams: cf.PointNetTrainConfig

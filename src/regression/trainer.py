@@ -43,11 +43,12 @@ class PointNetTrainer(pl.LightningModule):
         tb = self.logger.experiment
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
+
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-
-            tb.add_text('train/learned adj', str(vectors.tolist()), global_step=self.global_step)
-
-            self.log('train/g.t. adj', A.quat_to_adj(quat))
+            writer = tb.SummaryWriter()
+            writer.add_text('train/learned adj', str(vectors.tolist()))
+            writer.close()
+            
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
@@ -78,9 +79,12 @@ class PointNetTrainer(pl.LightningModule):
         tb = self.logger.experiment
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
+
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            tb.add_text('val/learned adj', str(vectors.tolist()),global_step=self.global_step)
-            self.log('val/g.t. adj', A.quat_to_adj(quat))
+            writer = tb.SummaryWriter()
+            writer.add_text('val/learned adj', str(vectors.tolist()))
+            writer.close()
+
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)

@@ -6,6 +6,7 @@ import glob
 import torch
 from simulator.cloud_from_random import generate_random_quat
 import regression.file_util as F
+from util.optimal_svd import direct_SVD
 from scipy.spatial.transform import Rotation as R
 
 class SimulatedDataset(Dataset):
@@ -13,10 +14,11 @@ class SimulatedDataset(Dataset):
     Dataset to load simulated data which generated from random
     rotations.
     """
-    def __init__(self, path: str):
+    def __init__(self, path: str, svd: bool):
         with np.load(path) as data:
             self.cloud = torch.as_tensor(data["cloud"], dtype=torch.float32)
             self.quat  = torch.as_tensor(data["quat"], dtype=torch.float32)
+            self.get_svd = svd
 
     def __len__(self):
         return len(self.cloud)
@@ -24,6 +26,9 @@ class SimulatedDataset(Dataset):
     def __getitem__(self, index: int):
         curr_cloud = self.cloud[index]#.view(-1), option for flatten before model
         curr_quat = self.quat[index]
+
+        if self.get_svd:
+            return curr_cloud, direct_SVD(curr_cloud)
         
         return curr_cloud, curr_quat
 
