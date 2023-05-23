@@ -18,4 +18,5 @@ class SimulatorConfig:
     num_points: int = 100
     sigma: float = 0.01
     source_norm: bool = False
+    one_source: bool = False
 

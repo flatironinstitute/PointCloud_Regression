@@ -15,7 +15,7 @@ def main(config: cf.SimulatorConfig):
 
     quat, concate_cloud = cloud.generate_batches(config.batch_size,
                             config.num_points, config.sigma, config.rotation_format,
-                            config.source_norm, config.max_angle)
+                            config.source_norm, config.max_angle, config.one_source)
 
     data_path = config.output_path + 'cloud_and_quat.npz'
     save_data = {}

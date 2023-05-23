@@ -4,7 +4,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
-                    rot_format:str, norm:bool, max_angle:int, dtype=torch.double) -> torch.Tensor:
+                    rot_format:str, norm:bool, max_angle:int, one_source:bool, 
+                    dtype=torch.double) -> torch.Tensor:
     """
     generate batches of random rotation from scipy; 
     generate batches of source point clouds from random;
@@ -19,8 +20,11 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
     rot = R.from_euler(rot_format, angle_list, degrees=True)
     rot_mat, rot_quat = rot.as_matrix(), rot.as_quat()
     rot_mat_tensor = torch.from_numpy(rot_mat)
-
-    source_cloud = torch.randn(num_batches, 3, points_each_cloud, dtype=dtype)
+    
+    if one_source:
+        source_cloud = torch.randn(1, 3, points_each_cloud, dtype=dtype).expand(num_batches, -1, -1)
+    else:
+        source_cloud = torch.randn(num_batches, 3, points_each_cloud, dtype=dtype)
     if norm:
         source_cloud = source_cloud/source_cloud.norm(dim=1,keepdim=True)
     rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud)
