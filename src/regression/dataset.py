@@ -52,7 +52,7 @@ class ModelNetDataset(Dataset):
                 continue
             self.select_files.append(f)
 
-        self.sigma =sigma
+        self.sigma = sigma
         self.num_sample = num_sample
         self.num_rot = num_rot
 

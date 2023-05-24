@@ -18,7 +18,7 @@ class TrainingDataConfig:
     #options for model net
     category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
     sigma: float = 0.01
-    num_points: int = 1000
+    num_points: int = 1000 #downsampled size for the modelnet mesh
     num_rot: int = 1000
     model_net: bool = False
     range_max: int = 35000
