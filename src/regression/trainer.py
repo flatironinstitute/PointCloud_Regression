@@ -53,7 +53,7 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/a-mat quat chordal loss', loss)
-        elif net_option == "sid-d":
+        elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/6d quat frob loss', loss)
         else:
@@ -89,7 +89,7 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/a-mat quat chordal loss', loss)
-        elif net_option == "sid-d":
+        elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/6d quat frob loss', loss)
         else:
