@@ -21,7 +21,6 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> to
     #cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
     b, _, _, _ = cloud.shape
-    pred_list = torch.empty(b, 4)
 
     curr_pred = loaded_model(cloud) #no flatten needed, as feat net will do the downsampling
     if net_option == "adjugate":
@@ -31,9 +30,14 @@ def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> to
         print('predicted adjugate has shape: ', pred_quat.shape)
     elif net_option == "a-matrix":
         pred_quat = A.vec_to_quat(curr_pred)
-    else:
+    elif net_option == "chordal":
         pred_quat = curr_pred
         print('predicted chordal has shape: ', pred_quat.shape)
+    else:
+        print("predicted 6D vec has shape: ", curr_pred.shape)
+        rot_mat = A.sixdim_to_rotmat(curr_pred)
+        pred_quat = A.rotmat_to_quat(rot_mat)
+        print('predicted 6D has shape: ', pred_quat.shape)
 
     return pred_quat
 
