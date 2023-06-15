@@ -139,7 +139,7 @@ def chordal_square_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce 
     assert(q_predict.shape == q_target.shape)
 
     dist = quat_norm_diff(q_predict, q_target)
-    losses = 2*dist**2*(4 - dist**2)
+    losses = 2*dist*dist*(4 - dist*dist)
     loss = losses.mean() if reduce else losses
 
     return loss
