@@ -12,8 +12,7 @@ class Loss(Enum):
 
 class LossFn(ABC):
     @abstractmethod   
-    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
-                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         pass
 
 class FrobneiusLoss(LossFn):
@@ -34,8 +33,7 @@ class FrobneiusLoss(LossFn):
         return cls.instance
 
 class AMatirxLoss(LossFn):
-    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
-                        config:cf.PointNetTrainConfig) -> torch.Tensor:
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         anti_quat = A.vec_to_quat(predict)
         loss = chordal_square_loss(anti_quat, q_target)
         return loss, anti_quat
@@ -46,8 +44,7 @@ class AMatirxLoss(LossFn):
         return cls.instance
 
 class ChordalLoss(LossFn):
-    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor, 
-                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         loss = chordal_square_loss(predict, q_target)
         return loss, predict
     #Singleton pattern
@@ -57,8 +54,7 @@ class ChordalLoss(LossFn):
         return cls.instance
 
 class SixDLoss(LossFn):
-    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor, 
-                        config: cf.PointNetTrainConfig) -> torch.Tensor:
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         rot_mat = A.sixdim_to_rotmat(predict)
         mat_quat = A.quat_to_rotmat(q_target)
         loss = frobenius_norm_loss(rot_mat, mat_quat)
@@ -70,6 +66,21 @@ class SixDLoss(LossFn):
             cls.instance = super(SixDLoss, cls).__new__(cls)
         return cls.instance
 
+class RMSDLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
+                    concate_cloud: torch.Tensor) -> torch.Tensor:
+        source_cloud = concate_cloud[:, 0, :, :].transpose(1,2)
+        target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
+        pred_rot = A.quat_to_rotmat(predict)
+        rot_cloud = torch.matmul(pred_rot, source_cloud)
+        loss = torch.nn.MSELoss(rot_cloud, target_cloud)
+        return loss, predict
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(RMSDLoss, cls).__new__(cls)
+        return cls.instance
+
 class LossFactory:
     def create(self, loss_name):
         switcher = {
@@ -77,6 +88,7 @@ class LossFactory:
             'a-matrix': AMatirxLoss(),
             'chordal': ChordalLoss(),
             'six-d': SixDLoss()
+            'rmsd': RMSDLoss()
         }
         return switcher.get(loss_name)
 
