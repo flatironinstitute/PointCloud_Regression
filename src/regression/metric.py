@@ -8,7 +8,7 @@ import regression.penalties as P
 
 ###Factory Pattern of the loss functions###
 class Loss(Enum):
-    frobenius, chordal_quat, chordal_amat, six_d = 1, 2, 3, 4 
+    frobenius, chordal_quat, chordal_amat, six_d, rmsd = 1, 2, 3, 4, 5
 
 class LossFn(ABC):
     @abstractmethod   
@@ -77,6 +77,10 @@ class RMSDLoss(LossFn):
         pred_rot = A.quat_to_rotmat(predict)
         rot_cloud = torch.matmul(pred_rot, source_cloud)
         loss = torch.nn.MSELoss(rot_cloud, target_cloud)
+        print("debug rot cloud shape: ", rot_cloud.shape)
+        print("debug tgt cloud shape: ", target_cloud.shape)
+        print("debug rot cloud type: ", rot_cloud[0][0])
+        print("debug tgt cloud type: ", target_cloud[0][0])
         return loss, predict
 
     def __new__(cls):
