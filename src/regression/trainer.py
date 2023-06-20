@@ -56,9 +56,12 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/6d quat frob loss', loss)
-        else:
+        elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/chordal_square', loss)
+        else:
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('train/rmsd loss', loss)
         self.log('train/angle difference respect to g.t.', angle_diff)
 
     def training_step(self, batch, batch_idx: int):
@@ -96,9 +99,12 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/6d quat frob loss', loss)
-        else:
+        elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/chordal_square', loss)
+        else:
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('val/rmsd loss', loss)
         self.log('val/angle difference respect to g.t.', angle_diff)
 
     def validation_step(self, batch, batch_idx: int):
@@ -109,7 +115,12 @@ class PointNetTrainer(pl.LightningModule):
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
 
-        loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
+        if network_option == "adjugate":
+            loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
+        elif network_option == "rmsd":
+            loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud)
+        else:
+            loss, pred_quat = loss_computer.compute_loss(pred, quat)
         self.validation_log(batch, pred_quat, quat, loss, batch_idx)
         return loss
 
@@ -178,8 +189,10 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final Chordal of A-Mat: {trainer.logged_metrics["train/a-mat quat chordal loss"]}')
         elif config.model_config.adj_option == "six-d":
             logger.info(f'Finished training. Final Frobenius of 6D: {trainer.logged_metrics["train/6d quat frob loss"]}')
-        else:
+        elif config.model_config.adj_option == "chordal":
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        else:
+            logger.info(f'Finished training. Final RMSD: {trainer.logged_metrics["train/rmsd loss"]}')
         
         logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
 

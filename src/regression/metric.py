@@ -67,6 +67,9 @@ class SixDLoss(LossFn):
         return cls.instance
 
 class RMSDLoss(LossFn):
+    """
+    rmsd loss's input should be a 4 dim vector as a lone quaternion
+    """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                     concate_cloud: torch.Tensor) -> torch.Tensor:
         source_cloud = concate_cloud[:, 0, :, :].transpose(1,2)

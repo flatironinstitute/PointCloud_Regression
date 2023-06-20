@@ -39,7 +39,7 @@ class NetworkConfig:
     num_points: int = 100
     num_layer: int = 3
     hidden_size: int = 1024
-    adj_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/six-d'
+    adj_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/six-d/rmsd'
     batch_norm: bool = False
 
 @dataclasses.dataclass
