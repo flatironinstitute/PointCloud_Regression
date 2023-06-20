@@ -90,7 +90,7 @@ class LossFactory:
             'adjugate': FrobneiusLoss(),
             'a-matrix': AMatirxLoss(),
             'chordal': ChordalLoss(),
-            'six-d': SixDLoss()
+            'six-d': SixDLoss(),
             'rmsd': RMSDLoss()
         }
         return switcher.get(loss_name)
