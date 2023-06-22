@@ -76,10 +76,7 @@ class RMSDLoss(LossFn):
         target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
         pred_rot = A.quat_to_rotmat(predict)
         rot_cloud = torch.matmul(pred_rot, source_cloud)
-        # print("debug rot cloud shape: ", rot_cloud.shape)
-        # print("debug tgt cloud shape: ", target_cloud.shape)
-        # print("debug rot cloud type: ", rot_cloud[0][0])
-        # print("debug tgt cloud type: ", target_cloud[0][0])
+        
         mse = torch.nn.MSELoss()
         loss = mse(rot_cloud, target_cloud)
         
