@@ -27,7 +27,7 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
         source_cloud = torch.randn(num_batches, 3, points_each_cloud, dtype=dtype)
     if norm:
         source_cloud = source_cloud/source_cloud.norm(dim=1,keepdim=True)
-    rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud)
+    rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud) #y = R(q)*x
 
     noise = sigma*torch.randn_like(source_cloud)
     target_cloud = rotate_cloud + noise

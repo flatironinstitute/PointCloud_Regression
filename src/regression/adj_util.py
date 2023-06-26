@@ -43,6 +43,34 @@ def batch_adj_to_quat(adj_batch: torch.Tensor) -> torch.Tensor:
         q_batch[i] = curr_q
     return q_batch
 
+def vec_to_rot(vec: torch.Tensor, trace_norm: bool=False) -> torch.Tensor:
+    "convert one 10-dim vec to a rotation matrix"
+    trace = vec[0] + vec[4] + vec[7] + vec[9]
+    if trace_norm:
+        vec /= trace
+    rot_mat = torch.empty(3,3,device=vec.device)
+    rot_mat[0][0] = vec[0] + vec[4] - vec[7] - vec[9]
+    rot_mat[0][1] = 2*(-vec[3] + vec[5])
+    rot_mat[0][2] = 2*(vec[2] + vec[6])
+    rot_mat[1][0] = 2*(vec[3] + vec[5])
+    rot_mat[1][1] = vec[0] - vec[4] + vec[7] - vec[9]
+    rot_mat[1][2] = 2*(-vec[1] + vec[8])
+    rot_mat[2][0] = 2*(-vec[2] + vec[6])
+    rot_mat[2][1] = 2*(vec[1] + vec[8])
+    rot_mat[2][2] = vec[0] - vec[4] - vec[7] + vec[9]
+
+    return rot_mat
+
+def batch_vec_to_rot(vec_batch:torch.Tensor, trace_norm: bool=False) -> torch.Tensor:
+    b, _ = vec_batch.shape
+    rot_batch = torch.empty(b, 3, 3, device=vec_batch.device)
+
+    for i in range(len(vec_batch)):
+        curr_rot = vec_to_rot(vec_batch[i])
+        rot_batch[i] = curr_rot
+        
+    return rot_batch
+
 def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     """
     convert the batch of 10 dim vector from network's output
