@@ -68,7 +68,7 @@ def batch_vec_to_rot(vec_batch:torch.Tensor, trace_norm: bool=False) -> torch.Te
     for i in range(len(vec_batch)):
         curr_rot = vec_to_rot(vec_batch[i])
         rot_batch[i] = curr_rot
-        
+
     return rot_batch
 
 def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
@@ -111,6 +111,18 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
         evs.unsqueeze_(dim = 0)
 
     return evs[:,:,0]#.squeeze()
+
+def batch_vec_to_quat(vec_batch:torch.Tensor) -> torch.Tensor:
+    """convert batch of 10-vec to quaternions
+    """
+    b, _ = vec_batch.shape
+    quat_batch = torch.empty(b, 4, device=vec_batch.device)
+
+    for i in range(len(vec_batch)):
+        curr_quat = vec_to_quat(vec_batch[i])
+        quat_batch[i] = curr_quat
+        
+    return quat_batch
 
 # N x 3 -> N x 3 (unit norm)
 def normalize_vectors(vecs):
