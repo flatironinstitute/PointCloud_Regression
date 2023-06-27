@@ -68,13 +68,13 @@ class SixDLoss(LossFn):
 
 class RMSDLoss(LossFn):
     """
-    rmsd loss's input should be a 4 dim vector as a lone quaternion
+    rmsd loss's input should be a 10 dim vector as an adjugate quaternion
     """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                     concate_cloud: torch.Tensor) -> torch.Tensor: 
         source_cloud = concate_cloud[:, 0, :, :].transpose(1,2) 
         target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
-        pred_rot = A.quat_to_rotmat(predict)
+        pred_rot = A.vec_to_rot(predict)
         rot_cloud = torch.matmul(pred_rot, source_cloud)
         
         mse = torch.nn.MSELoss()
