@@ -43,9 +43,14 @@ class NetworkConfig:
     batch_norm: bool = False
 
 @dataclasses.dataclass
+class LossConfig:
+    rmsd_trace: bool = False
+
+@dataclasses.dataclass
 class PointNetTrainConfig:
     data: TrainingDataConfig = TrainingDataConfig()
     model_config: NetworkConfig = NetworkConfig()
+    loss_config: LossConfig = LossConfig()
     optim: OptimConfig = OptimConfig()
     batch_size: int = 64
     num_epochs: int = 10

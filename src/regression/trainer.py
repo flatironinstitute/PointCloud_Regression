@@ -61,9 +61,7 @@ class PointNetTrainer(pl.LightningModule):
             self.log('train/chordal_square', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
-            print("debug train angle diff: ", angle_diff)
-            print("debug train pred quat: ", pred)
-            print("debug train label quat: ", quat)
+            
             self.log('train/rmsd loss', loss)
         self.log('train/angle difference respect to g.t.', angle_diff)
 
@@ -78,7 +76,8 @@ class PointNetTrainer(pl.LightningModule):
         if network_option == "adjugate":
             loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
         elif network_option == "rmsd":
-            loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud)
+            loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud, 
+                                            self.cf.loss_config.rmsd_trace)
         else:
             loss, pred_quat = loss_computer.compute_loss(pred, quat)
         self.training_log(batch, pred_quat, quat, loss, batch_idx)
@@ -107,9 +106,7 @@ class PointNetTrainer(pl.LightningModule):
             self.log('val/chordal_square', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
-            print("debug val angle diff: ", angle_diff)
-            print("debug val pred quat: ", pred)
-            print("debug val label quat: ", quat)
+            
             self.log('val/rmsd loss', loss)
         self.log('val/angle difference respect to g.t.', angle_diff)
 
@@ -124,7 +121,8 @@ class PointNetTrainer(pl.LightningModule):
         if network_option == "adjugate":
             loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
         elif network_option == "rmsd":
-            loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud)
+            loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud, 
+                                            self.cf.loss_config.rmsd_trace)
         else:
             loss, pred_quat = loss_computer.compute_loss(pred, quat)
         self.validation_log(batch, pred_quat, quat, loss, batch_idx)

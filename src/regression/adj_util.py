@@ -66,7 +66,7 @@ def batch_vec_to_rot(vec_batch:torch.Tensor, trace_norm: bool=False) -> torch.Te
     rot_batch = torch.empty(b, 3, 3, device=vec_batch.device)
 
     for i in range(len(vec_batch)):
-        curr_rot = vec_to_rot(vec_batch[i])
+        curr_rot = vec_to_rot(vec_batch[i],trace_norm)
         rot_batch[i] = curr_rot
 
     return rot_batch

@@ -71,7 +71,7 @@ class RMSDLoss(LossFn):
     rmsd loss's input should be a 10 dim vector as an adjugate quaternion
     """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
-                    concate_cloud: torch.Tensor) -> torch.Tensor: 
+                    concate_cloud: torch.Tensor, trace_norm: bool=False) -> torch.Tensor: 
         source_cloud = concate_cloud[:, 0, :, :].transpose(1,2) 
         target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
         pred_rot = A.batch_vec_to_rot(predict)
@@ -80,7 +80,7 @@ class RMSDLoss(LossFn):
         mse = torch.nn.MSELoss()
         loss = mse(rot_cloud, target_cloud)
 
-        pred_quat = A.batch_vec_to_quat(predict)
+        pred_quat = A.batch_vec_to_quat(predict,trace_norm)
         
         return loss, pred_quat
 
