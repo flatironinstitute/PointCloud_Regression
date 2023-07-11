@@ -19,4 +19,5 @@ class SimulatorConfig:
     sigma: float = 0.01
     source_norm: bool = False
     one_source: bool = False
+    uniform_: bool = False #random distribution to generate source cloud, Gaussian by default
 
