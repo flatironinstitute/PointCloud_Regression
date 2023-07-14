@@ -16,6 +16,10 @@ def generate_random_quat() -> np.ndarray:
     quat = quat / norm
     return quat
 
+def generate_batch_random_quat(batch:int) -> np.ndarray:
+    batch_quat = [generate_random_quat() for _ in range(batch)]
+    return np.array(batch_quat)
+
 def quat_to_rot(quat:np.ndarray) -> np.ndarray:
     """this fxn manually convert quaternion to the rot mat
     instead of using scipy's Rotation
@@ -40,6 +44,10 @@ def quat_to_rot(quat:np.ndarray) -> np.ndarray:
     matrix[2,2] = q0**2 - q1**2 - q2**2 + q3**2
     
     return matrix
+
+def batch_quat_to_rot(batch_quat:np.ndarray) -> np.ndarray:
+    batch_rot = [quat_to_rot(q) for q in batch_quat]
+    return np.array(batch_rot)
 
 def rot2quat(M:np.ndarray) -> np.ndarray:
     """this fxn manually convert rot mat to the quaternion
@@ -73,3 +81,7 @@ def rot2quat(M:np.ndarray) -> np.ndarray:
         z = 0.25 * s
     Q = np.array([w, x, y, z]).reshape(-1)
     return Q
+
+def batch_rot_to_quat(batch_rot:np.ndarray) -> np.ndarray:
+    batch_quat = [quat_to_rot(r) for r in batch_rot]
+    return np.array(batch_quat)

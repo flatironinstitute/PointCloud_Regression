@@ -39,6 +39,7 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
     target_cloud = rotate_cloud + noise
 
     return rot_quat, source_cloud, target_cloud
+    #options for shuffling the template clouds
 
 def generate_batches(num_batches:int, points_each_cloud:int, 
                     sigma:float, rot_format:str, norm:bool, max_angle:int, 

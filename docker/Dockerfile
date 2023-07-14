@@ -4,4 +4,5 @@ RUN pip install --no-cache-dir    \
     pytorch-lightning==1.9.4      \
     pytorch -c pytorch            \
     matplotlib                    \
-    tensorboard
+    tensorboard                   \
+    tensorflow
