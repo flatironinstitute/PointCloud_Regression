@@ -2,6 +2,7 @@ import torch
 import numpy as np
 
 from scipy.spatial.transform import Rotation as R
+import quat_util as Q
 
 def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
                     rot_format:str, norm:bool, max_angle:int, one_source:bool, 
@@ -40,6 +41,36 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
 
     return rot_quat, source_cloud, target_cloud
     #options for shuffling the template clouds
+
+def manual_generate_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
+                    rot_format:str, norm:bool, max_angle:int, one_source:bool, 
+                    uniform_rand=False,dtype=torch.double) -> torch.Tensor:
+    """generate batches of random rotation from manually defined rotation; 
+    """
+    quat_list = Q.generate_batch_random_quat(num_batches)
+    
+    rot_mat = Q.batch_quat_to_rot(quat_list)
+    rot_mat_tensor = torch.from_numpy(rot_mat)
+    
+    if one_source:
+        if uniform_rand:
+            source_cloud = 2*torch.rand(1, 3, points_each_cloud) - 1 #rescale from [0,1] to [-1,1]
+        else:
+            source_cloud = torch.randn(1, 3, points_each_cloud, dtype=dtype).expand(num_batches, -1, -1)
+    else:
+        if uniform_rand:
+            source_cloud = 2*torch.rand(num_batches, 3, points_each_cloud, dtype=dtype) - 1
+        else:
+            source_cloud = torch.randn(num_batches, 3, points_each_cloud, dtype=dtype)
+    if norm:
+        source_cloud = source_cloud/source_cloud.norm(dim=1,keepdim=True)
+    rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud) #y = R(q)*x
+
+    noise = sigma*torch.randn_like(source_cloud)
+    target_cloud = rotate_cloud + noise
+
+    return quat_list, source_cloud, target_cloud
+
 
 def generate_batches(num_batches:int, points_each_cloud:int, 
                     sigma:float, rot_format:str, norm:bool, max_angle:int, 
