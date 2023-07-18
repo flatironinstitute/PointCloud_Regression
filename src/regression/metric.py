@@ -53,6 +53,16 @@ class ChordalLoss(LossFn):
             cls.instance = super(ChordalLoss, cls).__new__(cls)
         return cls.instance
 
+class ChordalL2Loss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
+        loss = chordal_l2_loss(predict, q_target) + P.unit_quat_constr(predict)
+        return loss, predict
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(ChordalL2Loss, cls).__new__(cls)
+        return cls.instance
+
 class SixDLoss(LossFn):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         rot_mat = A.sixdim_to_rotmat(predict)
@@ -68,21 +78,20 @@ class SixDLoss(LossFn):
 
 class RMSDLoss(LossFn):
     """
-    rmsd loss's input should be a 10 dim vector as an adjugate quaternion
+    rmsd loss's input should be a 4 dim vector as lone quaternions
+    which makes it easy to implement unit constrain
     """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                     concate_cloud: torch.Tensor, trace_norm: bool=False) -> torch.Tensor: 
         source_cloud = concate_cloud[:, 0, :, :].transpose(1,2) 
         target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
-        pred_rot = A.batch_vec_to_rot(predict,trace_norm)
+        pred_rot = A.quat_to_rotmat(predict)
         rot_cloud = torch.matmul(pred_rot, source_cloud)
         
         mse = torch.nn.MSELoss()
         loss = mse(rot_cloud, target_cloud)
 
-        pred_quat = A.batch_vec_to_quat(predict)
-        
-        return loss, pred_quat
+        return loss, predict
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -95,6 +104,7 @@ class LossFactory:
             'adjugate': FrobneiusLoss(),
             'a-matrix': AMatirxLoss(),
             'chordal': ChordalLoss(),
+            'l2chordal': ChordalL2Loss(),
             'six-d': SixDLoss(),
             'rmsd': RMSDLoss()
         }
@@ -163,6 +173,24 @@ def chordal_square_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce 
     loss = losses.mean() if reduce else losses
 
     return loss
+
+def chordal_l2_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = True) -> torch.Tensor:
+    """
+    Calculate batch of L2 norm quaternion.
+    """
+    assert(q_predict.shape == q_target.shape)
+
+    diff_ = q_predict - q_target
+    sum_ = q_predict + q_target
+    diff_dot = torch.bmm(diff_.unsqueeze(1),diff_.unsqueeze(-1)).squeeze(-1).norm(dim=1)
+    sum_dot = torch.bmm(sum_.unsqueeze(1),sum_.unsqueeze(-1)).squeeze(-1).norm(dim=1)
+    out = torch.min(diff_dot, sum_dot).squeeze()
+
+    if q_predict.device != q_target.device:
+        out = out.to(q_predict.device)
+
+    return out
+
 
 def mean_square(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
     mse = torch.nn.MSELoss()

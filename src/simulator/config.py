@@ -20,4 +20,5 @@ class SimulatorConfig:
     source_norm: bool = False
     one_source: bool = False
     uniform_: bool = False #random distribution to generate source cloud, Gaussian by default
+    manual: bool = False #whether use our manually random quaternion or not
 

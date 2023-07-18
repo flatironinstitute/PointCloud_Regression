@@ -13,45 +13,52 @@ def diag_sum(vec: torch.Tensor) -> torch.Tensor:
 
 def dot_01(vec: torch.Tensor) -> torch.Tensor:
     "q00 q11 == q01^2"
-    dot_ = torch.sum(vec[:,0]*vec[:,4])
-    sqr_ = torch.sum(vec[:,1]**2)
+    dot_ = vec[:,0]*vec[:,4]
+    sqr_ = vec[:,1]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
 def dot_02(vec: torch.Tensor) -> torch.Tensor:
     "q00 q22 == q02^2"
-    dot_ = torch.sum(vec[:,0]*vec[:,7])
-    sqr_ = torch.sum(vec[:,2]**2)
+    dot_ = vec[:,0]*vec[:,7]
+    sqr_ = vec[:,2]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
 def dot_03(vec: torch.Tensor) -> torch.Tensor:
     "q00 q33 == q03^2"
-    dot_ = torch.sum(vec[:,0]*vec[:,9])
-    sqr_ = torch.sum(vec[:,3]**2)
+    dot_ = vec[:,0]*vec[:,9]
+    sqr_ = vec[:,3]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
 def dot_12(vec: torch.Tensor) -> torch.Tensor:
     "q11 q22 == q12^2"
-    dot_ = torch.sum(vec[:,4]*vec[:,7])
-    sqr_ = torch.sum(vec[:,5]**2)
+    dot_ = vec[:,4]*vec[:,7]
+    sqr_ = vec[:,5]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
 def dot_13(vec: torch.Tensor) -> torch.Tensor:
     "q11 q33 == q13^2"
-    dot_ = torch.sum(vec[:,4]*vec[:,9])
-    sqr_ = torch.sum(vec[:,6]**2)
+    dot_ = vec[:,4]*vec[:,9]
+    sqr_ = vec[:,6]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
 
 def dot_23(vec: torch.Tensor) -> torch.Tensor:
     "q22 q33 == q23^2"
-    dot_ = torch.sum(vec[:,7]*vec[:,9])
-    sqr_ = torch.sum(vec[:,8]**2)
+    dot_ = vec[:,7]*vec[:,9]
+    sqr_ = vec[:,8]**2
     penalty = torch.mean((dot_ - sqr_)**2)
     return penalty
+
+def unit_quat_constr(quat: torch.Tensor) -> torch.Tensor:
+    "q*q == 1"
+    sqr = quat**2
+    penalty = torch.mean(sqr - 1)
+    return penalty
+
 
 def constrain_dict() -> Dict[int, Callable[[torch.Tensor], torch.Tensor]]:
     return {1:diag_sum, 2:dot_01, 3:dot_02, 4:dot_03,

@@ -74,13 +74,18 @@ def manual_generate_from_random(num_batches:int, points_each_cloud:int, sigma:fl
 
 def generate_batches(num_batches:int, points_each_cloud:int, 
                     sigma:float, rot_format:str, norm:bool, max_angle:int, 
-                    one_source:bool, uniform=False, dtype=torch.double) -> torch.Tensor:
+                    one_source:bool, manual=False, uniform=False, 
+                    dtype=torch.double) -> torch.Tensor:
     """
     concatenate source&target cloud for input data; 
     quat as ground truth
     """
-    quat_, source_, target_ = generate_data_from_random(num_batches,points_each_cloud,
-                                sigma, rot_format, norm, max_angle, one_source, uniform_rand)
+    if manual:
+        quat_, source_, target_ = manual_generate_from_random(num_batches,points_each_cloud,
+                                sigma, rot_format, norm, max_angle, one_source, uniform)
+    else:
+        quat_, source_, target_ = generate_data_from_random(num_batches,points_each_cloud,
+                                    sigma, rot_format, norm, max_angle, one_source, uniform)
     
 
     concatenate_cloud = torch.empty(num_batches,2,points_each_cloud,3,dtype=dtype)

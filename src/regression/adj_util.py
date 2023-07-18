@@ -224,7 +224,7 @@ def rotmat_to_quat(mat, ordering='xyzw'):
     return q.squeeze()
 
 def quat_to_rotmat(quat, ordering='xyzw'):
-    """Form a rotation matrix from a unit length quaternion.
+    """Form batch of rotation matrices from unit length quaternions.
         Valid orderings are 'xyzw' and 'wxyz'.
     """
     if quat.dim() < 2:

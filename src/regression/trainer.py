@@ -59,6 +59,9 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/chordal_square', loss)
+        elif net_option == "l2chordal":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('train/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             
@@ -104,6 +107,9 @@ class PointNetTrainer(pl.LightningModule):
         elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('val/chordal_square', loss)
+        elif net_option == "l2chordal":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            self.log('val/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             
@@ -195,6 +201,8 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final Frobenius of 6D: {trainer.logged_metrics["train/6d quat frob loss"]}')
         elif config.model_config.adj_option == "chordal":
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
+        elif config.model_config.adj_option == "l2chordal":
+            logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal L2 norm"]}')
         else:
             logger.info(f'Finished training. Final RMSD: {trainer.logged_metrics["train/rmsd loss"]}')
         
