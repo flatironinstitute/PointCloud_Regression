@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader, sampler
 import os
 import glob
 import torch
-from simulator.cloud_from_random import generate_random_quat
+from simulator.quat_util import generate_random_quat
 import regression.file_util as F
 from util.optimal_svd import direct_SVD
 from scipy.spatial.transform import Rotation as R

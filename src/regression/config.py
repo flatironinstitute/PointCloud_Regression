@@ -14,7 +14,7 @@ class TrainingDataConfig:
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
-    svd_mod: bool = False
+    svd_mod: bool = False #use qrmsd or qinit
     #options for model net
     category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
     sigma: float = 0.01

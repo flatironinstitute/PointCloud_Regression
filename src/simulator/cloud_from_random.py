@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from scipy.spatial.transform import Rotation as R
-import quat_util as Q
+import simulator.quat_util as Q
 
 def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
                     rot_format:str, norm:bool, max_angle:int, one_source:bool, 
