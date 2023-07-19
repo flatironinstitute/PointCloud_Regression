@@ -12,7 +12,7 @@ class PointNet(nn.Module):
         self.out_dim = 10
         if adj_option == "six-d":
             self.out_dim = 6 
-        elif adj_option == "chordal" or "rmsd" or "l2chordal":
+        elif adj_option == "chordal" or adj_option == "rmsd" or adj_option == "l2chordal":
             self.out_dim = 4
             
         self.feat_net = PointFeatCNN(hidden_size, batch_norm) #feature net directly output dim of hidden layer
