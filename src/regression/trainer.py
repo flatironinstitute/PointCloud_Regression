@@ -124,6 +124,7 @@ class PointNetTrainer(pl.LightningModule):
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
 
+        print("pred's shape: ", pred.shape)
         if network_option == "adjugate":
             loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
         elif network_option == "rmsd":
