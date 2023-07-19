@@ -174,7 +174,7 @@ def chordal_square_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce 
 
     return loss
 
-def chordal_l2_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = True) -> torch.Tensor:
+def quat_norm_l2(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
     """
     Calculate batch of L2 norm quaternion.
     """
@@ -191,6 +191,14 @@ def chordal_l2_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = Tr
 
     return out
 
+def chordal_l2_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = True) -> torch.Tensor:
+    assert(q_predict.shape == q_target.shape)
+
+    dist = quat_norm_l2(q_predict, q_target)
+    losses = 2*dist*dist*(4 - dist*dist)
+    loss = losses.mean() if reduce else losses
+
+    return loss
 
 def mean_square(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
     mse = torch.nn.MSELoss()
