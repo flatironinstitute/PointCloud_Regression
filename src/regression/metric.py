@@ -78,14 +78,14 @@ class SixDLoss(LossFn):
 
 class RMSDLoss(LossFn):
     """
-    rmsd loss's input should be a 4 dim vector as lone quaternions
-    which makes it easy to implement unit constrain
+    rmsd loss's input should be a 10 dim vector as adjugate quaternions
     """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                     concate_cloud: torch.Tensor, trace_norm: bool=False) -> torch.Tensor: 
         source_cloud = concate_cloud[:, 0, :, :].transpose(1,2) 
         target_cloud = concate_cloud[:, 1, :, :].transpose(1,2)
-        pred_rot = A.quat_to_rotmat(predict)
+        pred_quat = A.batch_vec_to_quat(predict)
+        pred_rot = A.quat_to_rotmat(pred_quat)
         rot_cloud = torch.matmul(pred_rot, source_cloud)
         
         mse = torch.nn.MSELoss()
@@ -111,6 +111,21 @@ class LossFactory:
         return switcher.get(loss_name)
 
 ###helper functions of loss, and angle differences###
+def rmsd_diff(pred_quat:torch.Tensor, cloud:torch.Tensor) -> torch.Tensor:
+    """Calculate batch average of RMSD difference; 
+    args: quat and cloud are directly load from batch
+    """
+    source_cloud = cloud[:, 0, :, :].transpose(1,2) 
+    target_cloud = cloud[:, 1, :, :].transpose(1,2)
+
+    pred_rot = A.quat_to_rotmat(pred_quat)
+    rot_cloud = torch.matmul(pred_rot, source_cloud)
+        
+    mse = torch.nn.MSELoss()
+    loss = mse(rot_cloud, target_cloud)
+
+    return loss
+
 def quat_cosine_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
     Calculate batch of quaternion cosine differences
@@ -192,6 +207,8 @@ def quat_norm_l2(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tenso
     return out
 
 def chordal_l2_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = True) -> torch.Tensor:
+    """use exactly 
+    """
     assert(q_predict.shape == q_target.shape)
 
     dist = quat_norm_l2(q_predict, q_target)
