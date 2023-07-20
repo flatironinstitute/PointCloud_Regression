@@ -66,8 +66,8 @@ class PointNetTrainer(pl.LightningModule):
             self.log('train/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
-            
             self.log('train/rmsd loss', loss)
+            
         self.log('train/angle difference respect to g.t.', angle_diff)
         self.log('train/rmsd difference respect to g.t.', rmsd_error)
 
@@ -117,8 +117,8 @@ class PointNetTrainer(pl.LightningModule):
             self.log('val/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
-            
             self.log('val/rmsd loss', loss)
+
         self.log('val/angle difference respect to g.t.', angle_diff)
         self.log('val/rmsd difference respect to g.t.', rmsd_error)
 

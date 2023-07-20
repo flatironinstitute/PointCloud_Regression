@@ -91,7 +91,7 @@ class RMSDLoss(LossFn):
         mse = torch.nn.MSELoss()
         loss = mse(rot_cloud, target_cloud)
 
-        return loss, predict
+        return loss, pred_quat
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
