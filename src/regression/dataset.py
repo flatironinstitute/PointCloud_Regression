@@ -28,7 +28,7 @@ class SimulatedDataset(Dataset):
         curr_quat = self.quat[index]
 
         if self.get_svd:
-            return curr_cloud, direct_SVD(curr_cloud)
+            return curr_cloud, torch.as_tensor(direct_SVD(curr_cloud), dtype=torch.float32)
         
         return curr_cloud, curr_quat
 
