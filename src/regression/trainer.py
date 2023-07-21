@@ -41,7 +41,7 @@ class PointNetTrainer(pl.LightningModule):
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         net_option = self.cf.model_config.adj_option
         cloud, _ = batch
-        rmsd_error = M.rmsd_diff(quat, cloud)
+        rmsd_error = M.rmsd_diff(pred, cloud)
 
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
@@ -67,7 +67,7 @@ class PointNetTrainer(pl.LightningModule):
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             self.log('train/rmsd loss', loss)
-            
+
         self.log('train/angle difference respect to g.t.', angle_diff)
         self.log('train/rmsd difference respect to g.t.', rmsd_error)
 
@@ -92,7 +92,7 @@ class PointNetTrainer(pl.LightningModule):
     def validation_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         net_option = self.cf.model_config.adj_option
         cloud, _ = batch
-        rmsd_error = M.rmsd_diff(quat, cloud)
+        rmsd_error = M.rmsd_diff(pred, cloud)
 
         if net_option == "adjugate":
             self.log('val/frob_loss', loss)
