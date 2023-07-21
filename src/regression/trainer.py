@@ -154,9 +154,11 @@ class PointNetDataModule(pl.LightningDataModule):
             self.ds = ModelNetDataset(hydra.utils.to_absolute_path(self.config.file_path), 
                                     self.config.category, self.config.num_points, 
                                     self.config.sigma,self.config.num_rot,
-                                    self.config.range_max, self.config.range_min)
+                                    self.config.range_max, self.config.range_min, 
+                                    self.config.tensor_type)
         else:
-            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path),config.svd_mod)
+            self.ds = SimulatedDataset(hydra.utils.to_absolute_path(self.config.file_path),
+                                    self.config.svd_mod, self.config.tensor_type)
 
         self.ds_train = None
         self.ds_val = None
@@ -195,6 +197,8 @@ def main(config: cf.PointNetTrainConfig):
     data_config = config.data
     dm = PointNetDataModule(data_config, config.batch_size)
     model = PointNetTrainer(config)
+    if data_config.tensor_type == torch.float64:
+        model = model.to(torch.float64)
 
     trainer.fit(model,dm)
 

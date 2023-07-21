@@ -1,6 +1,7 @@
 import dataclasses
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Type
 import omegaconf
+import torch
 
 @dataclasses.dataclass
 class TrainingDataConfig:
@@ -23,7 +24,7 @@ class TrainingDataConfig:
     model_net: bool = False
     range_max: int = 35000
     range_min: int = 30000
-
+    tensor_type: Type[torch.Tensor] = torch.float64
 
 @dataclasses.dataclass
 class OptimConfig:
