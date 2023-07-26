@@ -47,9 +47,9 @@ class PointNetTrainer(pl.LightningModule):
             self.log('train/frob_loss', loss)
 
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            writer = tb.SummaryWriter()
-            writer.add_text('train/learned adj', str(vectors.tolist()))
-            writer.close()
+            # writer = tb.SummaryWriter()
+            # writer.add_text('train/learned adj', str(vectors.tolist()))
+            # writer.close()
 
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
@@ -98,9 +98,9 @@ class PointNetTrainer(pl.LightningModule):
             self.log('val/frob_loss', loss)
 
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            writer = tb.SummaryWriter()
-            writer.add_text('val/learned adj', str(vectors.tolist()))
-            writer.close()
+            # writer = tb.SummaryWriter()
+            # writer.add_text('val/learned adj', str(vectors.tolist()))
+            # writer.close()
 
             angle_diff = M.quat_angle_diff(pred, quat)
         elif net_option == "a-matrix":
