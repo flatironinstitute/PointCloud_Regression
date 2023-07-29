@@ -134,9 +134,11 @@ def quat_cosine_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     assert q_a.shape[-1] == q_b.shape[-1]
 
     batch_dot = torch.bmm(q_a.unsqueeze(1), q_b.unsqueeze(2)).squeeze()
-    batch_q_diff = torch.acos(batch_dot)
+    batch_q_diff = torch.acos(torch.abs(batch_dot))
+    
+    batch_ang_diff = 180*batch_q_diff/torch.pi
 
-    return batch_q_diff
+    return batch_ang_diff
 
 def quat_norm_diff(q_a: torch.Tensor, q_b: torch.Tensor) -> torch.Tensor:
     """
