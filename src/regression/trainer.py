@@ -218,7 +218,7 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final RMSD: {trainer.logged_metrics["train/rmsd loss"]}')
         
         logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
-        logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/cosine angle difference respect to g.t."]}')
+        logger.info(f'Finished training. Final Cosine Angle Difference: {trainer.logged_metrics["train/cosine angle difference respect to g.t."]}')
 
 
     
