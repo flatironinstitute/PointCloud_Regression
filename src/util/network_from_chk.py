@@ -75,6 +75,20 @@ def get_batch_angle_diff(cloud: torch.Tensor, true_quat: torch.Tensor,
     net_list_six = M.quat_angle_diff(pred_quat_six, true_quat, reduce=False) if pred_quat_six is not None else None
     return svd_list, net_list_adj, net_list_chr, net_list_amt, net_list_six#4 torch.Tensors
 
+def get_batch_cosine_diff(cloud: torch.Tensor, true_quat: torch.Tensor,
+                        pred_quat_adj: torch.Tensor = None, 
+                        pred_quat_chr: torch.Tensor = None, 
+                        pred_quat_amt: torch.Tensor = None,
+                        pred_quat_six: torch.Tensor = None):
+    #the input can be wrap up as a dict for different predicted quat
+    svd_quat = get_svd_quat(cloud)
+    svd_list = M.quat_cosine_diff(svd_quat, true_quat, reduce=False)
+    net_list_adj = M.quat_cosine_diff(pred_quat_adj, true_quat, reduce=False) if pred_quat_adj is not None else None
+    net_list_chr = M.quat_cosine_diff(pred_quat_chr, true_quat, reduce=False) if pred_quat_chr is not None else None
+    net_list_amt = M.quat_cosine_diff(pred_quat_amt, true_quat, reduce=False) if pred_quat_amt is not None else None
+    net_list_six = M.quat_cosine_diff(pred_quat_six, true_quat, reduce=False) if pred_quat_six is not None else None
+    return svd_list, net_list_adj, net_list_chr, net_list_amt, net_list_six#4 torch.Tensors
+
 def generate_fig(svd_list:torch.Tensor, net_list_adj:torch.Tensor, net_list_chr:torch.Tensor, net_list_amt:torch.Tensor):
     #need wrap up more lines; need add title and axes
     l = np.arange(len(svd_list))
@@ -140,8 +154,9 @@ def main():
     pred_quat_amt = forward_loaded_model(pointnet_model_amt, cloud, "a-matrix") if pointnet_model_amt != None else None
     pred_quat_six = forward_loaded_model(pointnet_model_six, cloud, "six-d") if pointnet_model_six != None else None
 
+    "we use arccos as the standard way to calculate angle difference between 2 quat"
     list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff, list_six_diff = \
-                get_batch_angle_diff(cloud, true_quat, pred_quat_adj, pred_quat_chr, pred_quat_amt, pred_quat_six)
+                get_batch_cosine_diff(cloud, true_quat, pred_quat_adj, pred_quat_chr, pred_quat_amt, pred_quat_six)
     #delta_q_fig = generate_fig(list_svd_diff, list_adj_diff, list_chr_diff, list_amt_diff)
     #delta_q_fig.savefig(save_path+"/angle_diff.png")
 
