@@ -52,23 +52,30 @@ class PointNetTrainer(pl.LightningModule):
             # writer.close()
 
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/a-mat quat chordal loss', loss)
         elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/6d quat frob loss', loss)
         elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/chordal_square', loss)
         elif net_option == "l2chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/rmsd loss', loss)
 
         self.log('train/angle difference respect to g.t.', angle_diff)
+        self.log('train/cosine angle difference respect to g.t.', angle_cos)
         self.log('train/rmsd difference respect to g.t.', rmsd_error)
 
     def training_step(self, batch, batch_idx: int):
@@ -103,23 +110,30 @@ class PointNetTrainer(pl.LightningModule):
             # writer.close()
 
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
         elif net_option == "a-matrix":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/a-mat quat chordal loss', loss)
         elif net_option == "six-d":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/6d quat frob loss', loss)
         elif net_option == "chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/chordal_square', loss)
         elif net_option == "l2chordal":
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/chordal L2 norm', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/rmsd loss', loss)
 
         self.log('val/angle difference respect to g.t.', angle_diff)
+        self.log('val/cosine angle difference respect to g.t.', angle_cos)
         self.log('val/rmsd difference respect to g.t.', rmsd_error)
 
     def validation_step(self, batch, batch_idx: int):
@@ -214,6 +228,7 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final RMSD: {trainer.logged_metrics["train/rmsd loss"]}')
         
         logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
+        logger.info(f'Finished training. Final Cosine Angle Difference: {trainer.logged_metrics["train/cosine angle difference respect to g.t."]}')
 
 
     
