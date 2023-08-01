@@ -17,8 +17,10 @@ def main(config: cf.SimulatorConfig):
                             config.num_points, config.sigma, config.rotation_format,
                             config.source_norm, config.max_angle, config.one_source,
                             config.manual, config.uniform_)
+    one_src = "one_src_" if config.one_source else ""
+    uniform = "unif_" if config.uniform_ else ""
 
-    data_path = config.output_path + 'cloud_and_quat' + str(config.batch_size) + '.npz'
+    data_path = config.output_path + 'cloud_and_quat_' + str(config.batch_size) + '_' + one_src + uniform + 'sigma_' + str(config.sigma) + '.npz'
     save_data = {}
     save_data['cloud'] = concate_cloud
     save_data['quat'] = quat
