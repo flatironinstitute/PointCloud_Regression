@@ -1,8 +1,8 @@
 # PointCloud_Regression
-Point Cloud regression on simulated and ModelNet40 datasets.
+Point Cloud regression with new algebraical representation on ModelNet40 datasets (ICCV 2023)
 
 <img src="https://github.com/EmperorAkashi/PointCloud_Regression/blob/main/docs/Figure2-v1.jpg" width="75%" >
-Our representation illustrates how quaternion space in 2D must be covered by multiple alternatives solutions depending on the actual 2D cosine and sine rotation parameters.
+Our representation illustrates how quaternion space in 2D must be covered by multiple alternative solutions depending on the actual 2D cosine and sine rotation parameters.
  
 # Get started
 ### Use our architecture on the Jupyter Notebook 
