@@ -2,7 +2,8 @@
 Point Cloud regression on simulated and ModelNet40 datasets.
 
 <img src="https://github.com/EmperorAkashi/PointCloud_Regression/blob/main/docs/Figure2-v1.jpg" width="75%" >
-
+Our representation illustrates how quaternion space in 2D must be covered by multiple alternatives solutions depending on the actual 2D cosine and sine rotation parameters.
+ 
 # Get started
 ### Use our architecture on the Jupyter Notebook 
 start from create a virtual environment, i.e.
