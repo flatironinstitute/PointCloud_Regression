@@ -1,6 +1,8 @@
 # PointCloud_Regression
 Point Cloud regression on simulated and ModelNet40 datasets.
 
+<img src="https://github.com/EmperorAkashi/PointCloud_Regression/blob/main/docs/Figure2-v1.jpg" width="75%" >
+
 # Get started
 ### Use our architecture on the Jupyter Notebook 
 start from create a virtual environment, i.e.
