@@ -35,4 +35,6 @@ import regression.adj_util as A
 from regression.dataset import SimulatedDataset, ModelNetDataset
 ```
 
+Finally, one could run the test via `pytest /your/repository/path/PointCloud_Regression/tests/`
+
 
