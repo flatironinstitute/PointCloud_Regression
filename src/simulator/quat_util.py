@@ -20,14 +20,20 @@ def generate_batch_random_quat(batch:int) -> np.ndarray:
     batch_quat = [generate_random_quat() for _ in range(batch)]
     return np.array(batch_quat)
 
-def quat_to_rot(quat:np.ndarray) -> np.ndarray:
+def quat_to_rot(quat:np.ndarray, convention:str = 'Hamitonian') -> np.ndarray:
     """this fxn manually convert quaternion to the rot mat
     instead of using scipy's Rotation
     """
-    q0 = quat[0]
-    q1 = quat[1]
-    q2 = quat[2]
-    q3 = quat[3]
+    if convention == 'JPL':
+        q0 = quat[3]
+        q1 = quat[0]
+        q2 = quat[1]
+        q3 = quat[2]
+    else:
+        q0 = quat[0]
+        q1 = quat[1]
+        q2 = quat[2]
+        q3 = quat[3]
     
     matrix = np.zeros([3,3])
     

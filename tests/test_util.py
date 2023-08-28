@@ -10,7 +10,7 @@ def test_quat2rot():
     r_scipy = R.from_quat(quat_)
 
     rot_scipy = r_scipy.as_matrix()
-    rot_manual = Q.quat_to_rot(quat_)
+    rot_manual = Q.quat_to_rot(quat_, 'JPL')
 
     assert np.allclose(rot_scipy, rot_manual, atol=1e-5)
 
