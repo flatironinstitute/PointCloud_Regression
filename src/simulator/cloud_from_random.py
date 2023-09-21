@@ -40,7 +40,6 @@ def generate_data_from_random(num_batches:int, points_each_cloud:int, sigma:floa
     target_cloud = rotate_cloud + noise
 
     return rot_quat, source_cloud, target_cloud
-    #options for shuffling the template clouds
 
 def manual_generate_from_random(num_batches:int, points_each_cloud:int, sigma:float, 
                     rot_format:str, norm:bool, max_angle:int, one_source:bool, 
@@ -64,7 +63,7 @@ def manual_generate_from_random(num_batches:int, points_each_cloud:int, sigma:fl
             source_cloud = torch.randn(num_batches, 3, points_each_cloud, dtype=dtype)
     if norm:
         source_cloud = source_cloud/source_cloud.norm(dim=1,keepdim=True)
-    rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud) #y = R(q)*x
+    rotate_cloud = torch.matmul(rot_mat_tensor, source_cloud) 
 
     noise = sigma*torch.randn_like(source_cloud)
     target_cloud = rotate_cloud + noise
@@ -75,7 +74,7 @@ def manual_generate_from_random(num_batches:int, points_each_cloud:int, sigma:fl
 def generate_batches(num_batches:int, points_each_cloud:int, 
                     sigma:float, rot_format:str, norm:bool, max_angle:int, 
                     one_source:bool, manual=False, uniform=False, 
-                    dtype=torch.double) -> torch.Tensor:
+                    dtype=torch.double, shuffling=False) -> torch.Tensor:
     """
     concatenate source&target cloud for input data; 
     quat as ground truth
@@ -87,6 +86,9 @@ def generate_batches(num_batches:int, points_each_cloud:int,
         quat_, source_, target_ = generate_data_from_random(num_batches,points_each_cloud,
                                     sigma, rot_format, norm, max_angle, one_source, uniform)
     
+    if shuffling:
+        random_indices = torch.randperm(len(target_))
+        target_ = target_[random_indices]
 
     concatenate_cloud = torch.empty(num_batches,2,points_each_cloud,3,dtype=dtype)
 

@@ -21,4 +21,5 @@ class SimulatorConfig:
     one_source: bool = False
     uniform_: bool = False #random distribution to generate source cloud, Gaussian by default
     manual: bool = False #whether use our manually random quaternion or not
+    shuffling: bool = False #whether shuffle the target cloud
 

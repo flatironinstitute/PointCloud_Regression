@@ -16,7 +16,7 @@ def main(config: cf.SimulatorConfig):
     quat, concate_cloud = cloud.generate_batches(config.batch_size,
                             config.num_points, config.sigma, config.rotation_format,
                             config.source_norm, config.max_angle, config.one_source,
-                            config.manual, config.uniform_)
+                            config.manual, config.uniform_, config.shuffling)
     one_src = "one_src_" if config.one_source else ""
     uniform = "unif_" if config.uniform_ else ""
 
