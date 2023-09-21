@@ -37,4 +37,6 @@ from regression.dataset import SimulatedDataset, ModelNetDataset
 
 Finally, one could run the test via `pytest /your/repository/path/PointCloud_Regression/tests/`
 
+The test pipeline tested the convention of quaternion, where our homemade code uses Hamitonian convention, but the `scipy.spatial.transform` uses JPL convention
+
 
