@@ -41,6 +41,7 @@ class PointNetTrainer(pl.LightningModule):
     def training_log(self, batch, pred:torch.Tensor, quat:torch.Tensor, loss: float, batch_idx: int):
         net_option = self.cf.model_config.adj_option
         cloud, _ = batch
+        print("debug input size: ", cloud.shape)
         rmsd_error = M.rmsd_diff(pred, cloud)
 
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
