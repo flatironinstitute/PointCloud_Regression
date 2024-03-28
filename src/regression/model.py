@@ -66,20 +66,20 @@ class MobileNet(nn.Module):
     def __init__(self, channel_in:int, n_class:int) -> None:
         super().__init__()
         self.model = nn.Sequential(
-            self.conv_bn(channel_in, 32, 2),
-            self.conv_dw(32, 64, 1),
-            self.conv_dw(64, 128, 2),
-            self.conv_dw(128, 128, 1),
-            self.conv_dw(128, 256, 2),
-            self.conv_dw(256, 256, 1),
-            self.conv_dw(256, 512, 2),
-            self.conv_dw(512, 512, 1),
-            self.conv_dw(512, 512, 1),
-            self.conv_dw(512, 512, 1),
-            self.conv_dw(512, 512, 1),
-            self.conv_dw(512, 512, 1),
-            self.conv_dw(512, 1024, 2),
-            self.conv_dw(1024, 1024, 1),
+            ConvBatchNorm(channel_in, 32, 2),
+            ConvDepthWise(32, 64, 1),
+            ConvDepthWise(64, 128, 2),
+            ConvDepthWise(128, 128, 1),
+            ConvDepthWise(128, 256, 2),
+            ConvDepthWise(256, 256, 1),
+            ConvDepthWise(256, 512, 2),
+            ConvDepthWise(512, 512, 1),
+            ConvDepthWise(512, 512, 1),
+            ConvDepthWise(512, 512, 1),
+            ConvDepthWise(512, 512, 1),
+            ConvDepthWise(512, 512, 1),
+            ConvDepthWise(512, 1024, 2),
+            ConvDepthWise(1024, 1024, 1),
             nn.AdaptiveAvgPool2d(1)
         )
         self.fc = nn.Linear(1024, n_class)
@@ -90,23 +90,33 @@ class MobileNet(nn.Module):
         x = self.fc(x)
         return x
 
-    def conv_dw(self, input:int, output:int, stride:int) ->torch.Tensor:
-        return nn.Sequential(
-            nn.Conv2d(input, input, 3, stride, 1, groups=input, bias=False),
-            nn.BatchNorm2d(input),
-            nn.ReLU(inplace=True),
+class ConvDepthWise(torch.nn.Module):
+    def __init__(self, input:int, output:int, stride:int) ->torch.Tensor:
+        super().__init__()
+        self.depth_wise = nn.Sequential(
+                            nn.Conv2d(input, input, 3, stride, 1, groups=input, bias=False),
+                            nn.BatchNorm2d(input),
+                            nn.ReLU(inplace=True),
 
-            nn.Conv2d(input, output, 1, 1, 0, bias=False),
-            nn.BatchNorm2d(output),
-            nn.ReLU(inplace=True)
-        )
+                            nn.Conv2d(input, output, 1, 1, 0, bias=False),
+                            nn.BatchNorm2d(output),
+                            nn.ReLU(inplace=True)
+                        )
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        x = self.depth_wise(x)
+        return x
 
-    def conv_bn(self, input:int, output:int, stride:int) -> torch.Tensor:
-        return nn.Sequential(
+class ConvBatchNorm(torch.nn.Module):
+    def __init__(self, input:int, output:int, stride:int) -> torch.Tensor:
+        super().__init__
+        self.conv_batch = nn.Sequential(
             nn.Conv2d(input, output, 3, stride, 1, bias=True),
             nn.BatchNorm2d(output),
             nn.ReLU(inplace=True)
         )
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        x = self.conv_batch(x)
+        return x
 
 class FeedForward(nn.Module):
     def __init__(self, num_layer:int, hidden_size:int, out_opt:str) -> None:
