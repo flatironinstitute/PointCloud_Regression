@@ -1,7 +1,10 @@
 import numpy as np
 import scipy.io
 
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
+
+from torchvision import transforms
+
 
     
 def read_annotaions(ann_file:str) -> Dict[str, Any]:
@@ -51,6 +54,21 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     
     return curr_dict
 
-class ROILoader():
+class ROILoader:
     """@brief: base class to do image preprocess and augmentation
+    we do cropping separately,as cropping is depedent on bbox
+    that specified in the annotation,
+    that being said, we do resize after cropping
     """
+    def __init__(self, resize_shape:int) -> None:
+        self.resize = resize_shape
+        self.pixel_mean, self.pixel_std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+
+        self.transform = transforms.Compose([
+            transforms.ToPILImage(), # most attribute of torchvision needed
+            transforms.Resize(self.resize),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=self.pixel_mean, std=self.pixel_std)
+        ])
+
+
