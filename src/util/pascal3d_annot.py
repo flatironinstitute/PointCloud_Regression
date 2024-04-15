@@ -54,7 +54,7 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     
     return curr_dict
 
-class ROILoader:
+class RoILoader:
     """@brief: base class to do image preprocess and augmentation
     we do cropping separately,as cropping is depedent on bbox
     that specified in the annotation,
@@ -70,5 +70,18 @@ class ROILoader:
             transforms.ToTensor(),
             transforms.Normalize(mean=self.pixel_mean, std=self.pixel_std)
         ])
+
+class RoILoaderPascal(RoILoader):
+    """@brief, the class to load and crop the pascal3D+ image
+    with the bbox, the augmentation and preprocess are 
+    inherits from the base class
+    """
+    def __init__(self, category:str, iamge_id:str, resize_shape:int) -> None:
+        super().__init__(resize_shape)
+        self.anno_path = ""
+        self.image_path = ""
+        
+
+
 
 
