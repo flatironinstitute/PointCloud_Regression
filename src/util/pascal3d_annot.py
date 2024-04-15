@@ -1,10 +1,11 @@
 import numpy as np
 import scipy.io
+import cv2 as cv
+import torch
 
 from typing import Dict, Any, Tuple
 
 from torchvision import transforms
-
 
     
 def read_annotaions(ann_file:str) -> Dict[str, Any]:
@@ -75,11 +76,76 @@ class RoILoaderPascal(RoILoader):
     """@brief, the class to load and crop the pascal3D+ image
     with the bbox, the augmentation and preprocess are 
     inherits from the base class
+    @args:
+    image_id: the id for image and annotation, should be a string
+    for example: 2008_003743
     """
-    def __init__(self, category:str, iamge_id:str, resize_shape:int) -> None:
+    def __init__(self, category:str, image_id:str, resize_shape:int,
+                 anno_path:str, image_path:str, context_pad:int = 16) -> None:
         super().__init__(resize_shape)
-        self.anno_path = ""
-        self.image_path = ""
+        self.anno_path = anno_path + "/" + str(category) + "_pascal/" + image_id + ".mat"
+        self.image_path = image_path + "/" + str(category) + "_pascal/" + image_id + ".jpg"
+        self.context_scale = float(resize_shape[0])/(resize_shape[0] - 2*context_pad)
+
+    def context_padding(self, boxes:np.ndarray) -> np.ndarray:  
+        """@args:bbox is np.ndarray
+        we will do clipping in the roi_cropping
+        """
+        if self.context_scale == 1.0:
+            return boxes
+        _boxes = boxes.astype(np.float32).copy()
+        x1, y1, x2, y2 = _boxes[0], _boxes[1], _boxes[2], _boxes[3]
+
+        # Compute the expanded region
+        half_height = (y2 - y1 + 1) / 2.0
+        half_width = (x2 - x1 + 1) / 2.0
+        center_x = x1 + half_width
+        center_y = y1 + half_height
+
+        # Calculate new corners with context scaling
+        x1 = np.round(center_x - half_width * self.context_scale)
+        x2 = np.round(center_x + half_width * self.context_scale)
+        y1 = np.round(center_y - half_height * self.context_scale)
+        y2 = np.round(center_y + half_height * self.context_scale)
+
+        # Update _boxes with new values
+        _boxes[0] = x1
+        _boxes[1] = y1
+        _boxes[2] = x2
+        _boxes[3] = y2
+
+        return _boxes.astype(np.int32)
+
+    def crop_roi(self, image:np.ndarray, bbox:np.ndarray) -> np.ndarray:
+        """clip and shift the image to RGB
+        @Note: the final resizing will be specified in self.transforms
+        """
+        h, w, _ = image.shape
+        x1, x2, y1, y2 = self.context_padding(bbox)
+
+        x1 = max(x1, 0)
+        y1 = max(y1, 0)
+        x2 = min(x2, w-1)
+        y2 = min(y2, h-1)
+
+        if x1 >= x2 or y1 >= y2:
+            print('[bad box] ' + "h,w=%s,%s   %s  %s" % (h, w, '(%s,%s,%s,%s)' % tuple(bbox), '(%s,%s,%s,%s)' % (x1, y1, x2, y2)))
+            return torch.zeros(3, *self.resize)  # Creating an empty tensor with the right size
+
+        roi_img = image[y1:y2, x1:x2]
+        roi_img = roi_img[:,:,::-1]
+
+        return self.transform(roi_img)
+
+    def __call__(self) -> np.ndarray:
+        super().__call__()
+        anno = read_annotaions(self.anno_path)
+        image = cv.imread(self.image_path)
+
+        return self.crop_roi(image, anno['bbox'])
+
+
+
         
 
 

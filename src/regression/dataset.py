@@ -8,6 +8,7 @@ from simulator.quat_util import generate_random_quat
 import regression.file_util as F
 from util.optimal_svd import direct_SVD
 from scipy.spatial.transform import Rotation as R
+import util.pascal3d_annot as P
 
 class SimulatedDataset(Dataset):
     """
@@ -83,6 +84,26 @@ class ModelNetDataset(Dataset):
         concatenate_cloud[1,:,:] = target_cloud
 
         return concatenate_cloud, torch.as_tensor(r.as_quat(),dtype=torch.float32)
+
+class Pascal3DDataset(Dataset):
+    def __init__(self, category:str, num_sample:int, base_path:str) -> None:
+        super().__init__()
+        self.category = category # we must provide a category
+        self.num_sample = num_sample
+
+        self.all_files = F.list_files_in_dir(base_path)
+    
+    def __len__(self):
+        return self.num_sample
+
+    def __getitem__(self, index):
+        random_pick = np.random.randint(len(self.all_files))
+        curr_id = random_pick[-15:-4] # slice the id from the abs path
+        return 
+
+    
+
+
 
 class KittiOdometryDataset(Dataset):
     """
