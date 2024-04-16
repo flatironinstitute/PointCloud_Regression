@@ -25,7 +25,7 @@ class SimulatedDataset(Dataset):
         return len(self.cloud)
 
     def __getitem__(self, index: int):
-        curr_cloud = self.cloud[index] #.view(-1), option for flatten before model
+        curr_cloud = self.cloud[index] # .view(-1), option for flatten before model
         curr_quat = self.quat[index]
 
         if self.get_svd:
@@ -85,13 +85,18 @@ class ModelNetDataset(Dataset):
 
         return concatenate_cloud, torch.as_tensor(r.as_quat(),dtype=torch.float32)
 
+
 class Pascal3DDataset(Dataset):
-    def __init__(self, category:str, num_sample:int, base_path:str) -> None:
+    def __init__(self, category:str, num_sample:int, base_path:str, resize:int) -> None:
         super().__init__()
         self.category = category # we must provide a category
         self.num_sample = num_sample
+        self.resize_shape = resize
 
-        self.all_files = F.list_files_in_dir(base_path)
+        self.anno_path = base_path + "/" + "Annotations/" + self.category + "_pascal/"
+        self.image_path = base_path + "/" + "Images/" + self.category + "_pascal/"
+
+        self.all_files = F.list_files_in_dir(self.anno_path)
     
     def __len__(self):
         return self.num_sample
@@ -99,7 +104,13 @@ class Pascal3DDataset(Dataset):
     def __getitem__(self, index):
         random_pick = np.random.randint(len(self.all_files))
         curr_id = random_pick[-15:-4] # slice the id from the abs path
-        return 
+
+        img_loader = P.RoILoaderPascal(self.category, curr_id,
+                                       self.resize_shape, 
+                                       self.anno_path, self.image_path)
+        curr_img = img_loader()
+        curr_anno = ""
+        return      
 
     
 

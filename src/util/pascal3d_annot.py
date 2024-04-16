@@ -77,14 +77,16 @@ class RoILoaderPascal(RoILoader):
     with the bbox, the augmentation and preprocess are 
     inherits from the base class
     @args:
+    image_path&anno_path: the based path of those two folders 
+    will be specified in the Pascal3DDataset
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
         super().__init__(resize_shape)
-        self.anno_path = anno_path + "/" + str(category) + "_pascal/" + image_id + ".mat"
-        self.image_path = image_path + "/" + str(category) + "_pascal/" + image_id + ".jpg"
+        self.anno_path = anno_path + image_id + ".mat"
+        self.image_path = image_path + image_id + ".jpg"
         self.context_scale = float(resize_shape[0])/(resize_shape[0] - 2*context_pad)
 
     def context_padding(self, boxes:np.ndarray) -> np.ndarray:  
@@ -129,8 +131,7 @@ class RoILoaderPascal(RoILoader):
         y2 = min(y2, h-1)
 
         if x1 >= x2 or y1 >= y2:
-            print('[bad box] ' + "h,w=%s,%s   %s  %s" % (h, w, '(%s,%s,%s,%s)' % tuple(bbox), '(%s,%s,%s,%s)' % (x1, y1, x2, y2)))
-            return torch.zeros(3, *self.resize)  # Creating an empty tensor with the right size
+            raise ValueError('[bad box] ' + "h,w=%s,%s   %s  %s" % (h, w, '(%s,%s,%s,%s)' % tuple(bbox), '(%s,%s,%s,%s)' % (x1, y1, x2, y2)))
 
         roi_img = image[y1:y2, x1:x2]
         roi_img = roi_img[:,:,::-1]
