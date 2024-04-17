@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Type
+from typing import List, Tuple, Union, Dict
 from torch.utils.data import Dataset, DataLoader, sampler
 import os
 import glob
@@ -101,7 +101,7 @@ class Pascal3DDataset(Dataset):
     def __len__(self):
         return self.num_sample
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> Tuple[np.ndarray, Dict[str, Union[float, str]]]:
         random_pick = np.random.randint(len(self.all_files))
         curr_id = random_pick[-15:-4] # slice the id from the abs path
 
@@ -109,8 +109,14 @@ class Pascal3DDataset(Dataset):
                                        self.resize_shape, 
                                        self.anno_path, self.image_path)
         curr_img = img_loader()
-        curr_anno = ""
-        return      
+        curr_anno = P.read_annotaions(self.anno_path + curr_id + ".mat")
+
+        curr_dict = {"category":curr_anno["category"],
+                     "a":curr_anno["view"]["azimuth"],
+                     "e":curr_anno["view"]["elevation"],
+                     "t":curr_anno["view"]["theta"]}
+
+        return curr_img, curr_dict
 
     
 

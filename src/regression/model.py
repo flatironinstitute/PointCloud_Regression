@@ -61,9 +61,23 @@ class PointFeatCNN(nn.Module):
         x = self.net(x)
         return x.squeeze()
 
+class Regress2DNet(nn.Module):
+    def __init__(self, n_class:int, regress_dim:int) -> None:
+        super().__init__()
+        self.basic_model = MobileNet(3)
+        self.head_a = RegressHead(1024, n_class, regress_dim)
+        self.head_e = RegressHead(1024, n_class, regress_dim)
+        self.head_t = RegressHead(1024, n_class, regress_dim)
+        
+
 
 class MobileNet(nn.Module):
-    def __init__(self, channel_in:int, n_class:int) -> None:
+    def __init__(self, channel_in:int) -> None:
+        """@args
+        channel_in: number of channels of the input image
+        @notice: here we keep the backbone of MobileNet, but 
+        retain the output layer to RegressHead for a special task
+        """
         super().__init__()
         self.model = nn.Sequential(
             ConvBatchNorm(channel_in, 32, 2),
@@ -82,13 +96,28 @@ class MobileNet(nn.Module):
             ConvDepthWise(1024, 1024, 1),
             nn.AdaptiveAvgPool2d(1)
         )
-        self.fc = nn.Linear(1024, n_class)
 
     def forward(self, x) -> torch.Tensor:
         x = self.model(x)
         x = x.view(-1, 1024)
-        x = self.fc(x)
         return x
+
+class RegressHead(nn.Module):
+    def __init__(self, input_size:int, n_class:int, regress_dim:int) -> None:
+        """@args
+        n_class: number of classes/categories
+        regress_dim: the dimension of output to be regressed; 
+        can be 2 for [cos, sin] or 3 for [a^2, b^2, ab] 
+        """
+        super().__init__()
+        self.head = nn.Sequential(
+            nn.Linear(input_size, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, n_class*regress_dim)
+        )
+
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        return self.head(x)
 
 class ConvDepthWise(torch.nn.Module):
     def __init__(self, input:int, output:int, stride:int) ->torch.Tensor:
@@ -138,7 +167,7 @@ class FeedForward(nn.Module):
 
         self.output_layer = nn.Linear(hidden_size,out)
 
-    def forward(self,x) -> torch.Tensor:
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
         x_1 = x[:, 0, :, :].transpose(1,2) #should in dim bx3xnum
         x_2 = x[:, 1, :, :] #should in dim bxnumx3
         batch = len(x)
