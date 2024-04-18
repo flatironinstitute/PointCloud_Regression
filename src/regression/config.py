@@ -61,5 +61,9 @@ class PointNetTrainConfig:
     select_constrain: List[int] = dataclasses.field(default_factory=lambda:[1])
 
 @dataclasses.dataclass
+class RegNetTrainingConfig:
+    pass
+
+@dataclasses.dataclass
 class TestConfig(PointNetTrainConfig):
     chkpt_path: str = omegaconf.MISSING 

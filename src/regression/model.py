@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
-from typing import Optional
+from typing import Optional, Dict, Tuple
+
+import util.pascal3d_annot as P
 
 class PointNet(nn.Module):
     def __init__(self, hidden_size:int, num_points:int, adj_option:str, batch_norm:bool) -> None:
@@ -65,10 +67,23 @@ class Regress2DNet(nn.Module):
     def __init__(self, n_class:int, regress_dim:int) -> None:
         super().__init__()
         self.basic_model = MobileNet(3)
+        self.n_class = n_class
+        self.regress_dim = regress_dim
         self.head_a = RegressHead(1024, n_class, regress_dim)
         self.head_e = RegressHead(1024, n_class, regress_dim)
         self.head_t = RegressHead(1024, n_class, regress_dim)
-        
+
+        self.mask = P.MaskOut(n_class)
+
+    def forward(self, x:torch.Tensor, label:int) -> Tuple[torch.Tensor]:
+        x =self.basic_model(x)
+        batch, _, _ = x.shape
+
+        x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)
+        x_e = self.mask(self.head_e(x).view(batch, self.n_class, self.regress_dim), label)
+        x_t = self.mask(self.head_t(x).view(batch, self.n_class, self.regress_dim), label)
+
+        return x_a, x_e, x_t
 
 
 class MobileNet(nn.Module):

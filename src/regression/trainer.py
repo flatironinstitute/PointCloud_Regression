@@ -22,9 +22,9 @@ class PointNetTrainer(pl.LightningModule):
 
     def __init__(self, config: cf.PointNetTrainConfig) -> None:
         super().__init__()
-        #The LightningModule automatically save all the hyperparameters 
-        #passed to init simply by calling self.save_hyperparameters()
-        #with config, we need to structured it before call save_hyperparameters()
+        # The LightningModule automatically save all the hyperparameters 
+        # passed to init simply by calling self.save_hyperparameters()
+        # with config, we need to structured it before call save_hyperparameters()
         if not omegaconf.OmegaConf.is_config(config):
             config = omegaconf.OmegaConf.structured(config)
 

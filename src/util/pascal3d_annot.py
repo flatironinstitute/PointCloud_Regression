@@ -2,8 +2,9 @@ import numpy as np
 import scipy.io
 import cv2 as cv
 import torch
+import torch.nn as nn
 
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 
 from torchvision import transforms
 
@@ -78,7 +79,7 @@ class RoILoaderPascal(RoILoader):
     inherits from the base class
     @args:
     image_path&anno_path: the based path of those two folders 
-    will be specified in the Pascal3DDataset
+    will be specifiedin the Pascal3DDataset
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
     """
@@ -144,6 +145,28 @@ class RoILoaderPascal(RoILoader):
         image = cv.imread(self.image_path)
 
         return self.crop_roi(image, anno['bbox'])
+
+class MaskOut(nn.Module):
+    def __init__(self, n_category:int) -> None:
+        super().__init__()
+        self.n_category = n_category
+
+    def forward(self, x:torch.Tensor, label:List[int]) -> torch.Tensor:
+        """@args:
+        x: the input tensor withe shape BxN_categoryxN_dim,
+        N_dim is the dimension of the representation of the viewing angle
+        label: the label list of the current batch, should be in the same device as x
+        """
+        label = torch.as_tensor(label, device=x.device)
+        batch, _, _ = x.shape
+        assert batch == label.size(0)
+        assert (label >= 0).all() and (label < self.n_category).all() # "Labels out of range"
+
+
+        all_idx = torch.arange(batch)
+
+        masked_shape = (batch, x.size()[2:]) # the second dim is the dim of pose representation
+        return x[all_idx, label].view(*masked_shape)
 
 
 
