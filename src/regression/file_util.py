@@ -15,6 +15,9 @@ def list_files_in_dir(top_dir: str) -> list:
     return files
 
 def read_off_file(file_path: str) -> np.ndarray:
+    """method that load .off file from ModelNet dataset
+    which load all cartesian coord of all vertices of the current 3D model
+    """
     with open(file_path) as f:
         lines = f.readlines()
 
@@ -30,8 +33,8 @@ def read_off_file(file_path: str) -> np.ndarray:
     vertices = np.array(vertices)
     return vertices
 
-###read kitti's velodyne lidar###
-###calibration are in the image directory###
+### read kitti's velodyne lidar###
+### calibration are in the image directory###
 def get_velo(file_name:str) -> np.ndarray:
     points = np.fromfile(file_name, dtype=np.float32).reshape(-1, 4)
     velo_file = points[:, :3] 

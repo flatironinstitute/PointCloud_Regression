@@ -20,7 +20,7 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     segmented = ann_data['record']['segmented'][0][0][0]
     obj = ann_data['record']['objects'][0][0][0]
 
-    category = obj['class'][0]
+    category = obj['class'][0] # a string
     if not obj['viewpoint']:
         return {}
     elif 'distance' not in obj['viewpoint'].dtype.names:
@@ -79,9 +79,10 @@ class RoILoaderPascal(RoILoader):
     inherits from the base class
     @args:
     image_path&anno_path: the based path of those two folders 
-    will be specifiedin the Pascal3DDataset
+    will be specified in the Pascal3DDataset
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
+    we keep image_id to force the loaded anno and image to be consistent
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
@@ -153,7 +154,7 @@ class MaskOut(nn.Module):
 
     def forward(self, x:torch.Tensor, label:List[int]) -> torch.Tensor:
         """@args:
-        x: the input tensor withe shape BxN_categoryxN_dim,
+        x: the input tensor with a shape BxN_categoryxN_dim,
         N_dim is the dimension of the representation of the viewing angle
         label: the label list of the current batch, should be in the same device as x
         """
@@ -161,7 +162,6 @@ class MaskOut(nn.Module):
         batch, _, _ = x.shape
         assert batch == label.size(0)
         assert (label >= 0).all() and (label < self.n_category).all() # "Labels out of range"
-
 
         all_idx = torch.arange(batch)
 

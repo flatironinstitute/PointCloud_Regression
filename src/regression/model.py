@@ -76,7 +76,10 @@ class Regress2DNet(nn.Module):
         self.mask = P.MaskOut(n_class)
 
     def forward(self, x:torch.Tensor, label:int) -> Tuple[torch.Tensor]:
-        x =self.basic_model(x)
+        """@args:
+        label: an int that represent the class number
+        """
+        x = self.basic_model(x)
         batch, _, _ = x.shape
 
         x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)

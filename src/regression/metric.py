@@ -182,7 +182,7 @@ def quat_angle_diff(q_a: torch.Tensor, q_b: torch.Tensor, units='deg', reduce=Tr
     return diffs.mean() if reduce else diffs
 
 def chordal_square_loss(q_predict: torch.Tensor, q_target: torch.Tensor, reduce = True) -> torch.Tensor:
-    #usually works well for a normalized cloud
+    # usually works well for a normalized cloud
     assert(q_predict.shape == q_target.shape)
 
     dist = quat_norm_diff(q_predict, q_target)

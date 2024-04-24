@@ -25,6 +25,9 @@ class RegNetTrainer(pl.LightningModule):
         if not omegaconf.OmegaConf.is_config(config):
             config = omegaconf.OmegaConf.structured(config)
 
+        config.network.n_class = len(config.data.category)
+        self.category2idx = dict(zip(config.data.category, range(len(config.data.category))))
+
         self.save_hyperparameters(config)
 
         if config.network.regress_option == 'adjugate':
@@ -37,8 +40,18 @@ class RegNetTrainer(pl.LightningModule):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         return self.regnet(x)
     
-    
+    def training_step(self, batch, batch_idx:int) -> torch.Tensor | np.Dict[str, np.Any]:
+        image, anno = batch
+        curr_category = anno["category"]
+        pred_a, pred_e, pred_t = self(image, self.category2idx[curr_category])
 
+        anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
+
+        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+        pred_euler = A.batch_euler_to_rot(pred_a, pred_e, pred_t)
+
+        return 
+    
 class RegNetDataModule(pl.LightningModule):
     hparams: cf.PascalDataConfig
 

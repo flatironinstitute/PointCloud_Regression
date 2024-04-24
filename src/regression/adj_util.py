@@ -281,3 +281,41 @@ def isclose(mat1, mat2, tol=1e-6):
     Either tensor can be replaced by a scalar.
     """
     return (mat1 - mat2).abs_().lt(tol)
+
+def euler_to_rot(azi:torch.Tensor, ele:torch.Tensor, theta:torch.Tensor) -> torch.Tensor:
+    """convert the euler angles to rot mat, by following the ZXZ convention:
+    https://github.com/google-research/google-research/blob/81135e56d55f1fe169fae1ae80ebb8dd1e29efe9/implicit_pdf/pascal3d/data_loader_eval.py#L133
+    """
+    # Construct the first rotation matrix (around the Z-axis)
+    rot1 = torch.tensor([
+        [torch.cos(-azi), -torch.sin(-azi), 0],
+        [torch.sin(-azi), torch.cos(-azi), 0],
+        [0, 0, 1]
+    ])
+
+    # Construct the second rotation matrix
+    rot2 = torch.tensor([
+        [1, 0, 0],
+        [0, torch.cos(ele - torch.pi/2), -torch.sin(ele - torch.pi/2)],
+        [0, torch.sin(ele - torch.pi/2), torch.cos(ele - torch.pi/2)]
+    ])
+
+    rot_z = torch.tensor([
+        [torch.cos(theta), -torch.sin(theta), 0],
+        [torch.sin(theta), torch.cos(theta), 0],
+        [0, 0, 1]
+    ])
+
+    # Combine transformations
+    rot2 = torch.matmul(rot_z, rot2)  # Rotation by Z-axis and then by X-axis
+    rot = torch.matmul(rot2, rot1)  # Final rotation matrix
+
+    # Reshape to (3, 3)
+    rot = rot.view(3, 3)
+
+    return rot
+
+def deg_to_rad(ang:torch.Tensor) -> torch.Tensor:
+    return ang * (torch.pi / 180)
+
+    

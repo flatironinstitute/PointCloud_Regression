@@ -6,9 +6,12 @@ import glob
 import torch
 from simulator.quat_util import generate_random_quat
 import regression.file_util as F
+import regression.adj_util as A
 from util.optimal_svd import direct_SVD
-from scipy.spatial.transform import Rotation as R
 import util.pascal3d_annot as P
+
+from scipy.spatial.transform import Rotation as R
+
 
 class SimulatedDataset(Dataset):
     """
@@ -87,41 +90,45 @@ class ModelNetDataset(Dataset):
 
 
 class Pascal3DDataset(Dataset):
-    def __init__(self, category:str, num_sample:int, base_path:str, resize:int) -> None:
+    def __init__(self, category:List[str], num_sample:int, base_path:str, resize:int) -> None:
         super().__init__()
-        self.category = category # we must provide a category
+        self.category = category # we must provide a (list of) category
         self.num_sample = num_sample
         self.resize_shape = resize
+        self.base_path = base_path
 
-        self.anno_path = base_path + "/" + "Annotations/" + self.category + "_pascal/"
-        self.image_path = base_path + "/" + "Images/" + self.category + "_pascal/"
+        self.all_annos = []
+        self.all_image = []
+        for c in self.category:
+            curr_anno_path = base_path + "/" + "Annotations/" + c + "_pascal/"
+            curr_image_path = base_path + "/" + "Images/" + c + "_pascal/"
+            self.all_annos += F.list_files_in_dir(curr_anno_path)
+            self.all_image += F.list_files_in_dir(curr_image_path)
 
-        self.all_files = F.list_files_in_dir(self.anno_path)
-    
     def __len__(self):
         return self.num_sample
 
-    def __getitem__(self, index) -> Tuple[np.ndarray, Dict[str, Union[float, str]]]:
-        random_pick = np.random.randint(len(self.all_files))
-        curr_id = random_pick[-15:-4] # slice the id from the abs path
+    def __getitem__(self, index) -> Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]:
+        random_pick = np.random.randint(len(self.all_annos))
+        curr_file = self.all_annos[random_pick]
+        curr_id = curr_file[-15:-4] # slice the id from the abs path
+        curr_category = curr_file[len(self.base_path):-15] # slice the category from the abs path
 
         img_loader = P.RoILoaderPascal(self.category, curr_id,
                                        self.resize_shape, 
-                                       self.anno_path, self.image_path)
+                                       self.base_path+"/"+"Annotations"+curr_category+"pascal/", 
+                                       self.base_path+"/"+"images"+curr_category+"pascal/")
         curr_img = img_loader()
         curr_anno = P.read_annotaions(self.anno_path + curr_id + ".mat")
 
         curr_dict = {"category":curr_anno["category"],
-                     "a":curr_anno["view"]["azimuth"],
-                     "e":curr_anno["view"]["elevation"],
-                     "t":curr_anno["view"]["theta"]}
+                     "a":A.deg_to_rad(torch.tensor(curr_anno["view"]["azimuth"])),
+                     "e":A.deg_to_rad(torch.tensor(curr_anno["view"]["elevation"])),
+                     "t":A.deg_to_rad(torch.tensor(curr_anno["view"]["theta"]))}
 
-        return curr_img, curr_dict
+        return torch.as_tensor(curr_img, dtype=torch.float32), curr_dict
 
     
-
-
-
 class KittiOdometryDataset(Dataset):
     """
     Dataset to load kitti' velodyne lidar data of odometry

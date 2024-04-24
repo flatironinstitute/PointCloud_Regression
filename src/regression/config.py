@@ -75,12 +75,12 @@ class PascalDataConfig:
     limit: Optional[int] = None
     num_data_workers: int = 16
     #options for model net
-    category: str = "airplane"
-
+    category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
+    
 @dataclasses.dataclass
 class RegNetConfig:
-    n_class:int = 12
-    regress_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/svd'
+    n_class:int = 12 # by default, should be updated if we only train/eval several classes
+    regress_option: str = 'adjugate' # by default, also can be 'a-matrix/chordal/svd'
     batch_norm: bool = False
 
 @dataclasses.dataclass
