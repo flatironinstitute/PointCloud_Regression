@@ -61,8 +61,39 @@ class PointNetTrainConfig:
     select_constrain: List[int] = dataclasses.field(default_factory=lambda:[1])
 
 @dataclasses.dataclass
+class PascalDataConfig:
+    """configuration of data loading for Pascal3D+ dataset
+
+    attr:
+    file_path(str): path of the Pascal3D's images and annotations
+    train_prop(float): percentage for training
+    """
+    file_path: str = omegaconf.MISSING 
+    num_sample: int = 5000
+    crop: int = 224
+    train_prop: float = 0.9
+    limit: Optional[int] = None
+    num_data_workers: int = 16
+    #options for model net
+    category: str = "airplane"
+
+@dataclasses.dataclass
+class RegNetConfig:
+    n_class:int = 12
+    regress_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/svd'
+    batch_norm: bool = False
+
+@dataclasses.dataclass
 class RegNetTrainingConfig:
-    pass
+    data: PascalDataConfig = PascalDataConfig()
+    network: RegNetConfig = RegNetConfig()
+    optim: OptimConfig = OptimConfig()
+    batch_size: int = 64
+    num_epochs: int = 10
+    device: str = 'gpu'
+    num_gpus: int = 1
+    log_every: int = 1
+    constrain: bool = False
 
 @dataclasses.dataclass
 class TestConfig(PointNetTrainConfig):
