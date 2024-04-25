@@ -315,7 +315,52 @@ def euler_to_rot(azi:torch.Tensor, ele:torch.Tensor, theta:torch.Tensor) -> torc
 
     return rot
 
+def batch_euler_to_rot(azi: torch.Tensor, ele: torch.Tensor, theta: torch.Tensor) -> torch.Tensor:
+    """Convert a batch of Euler angles into a batch of 3x3 rotation matrices."""
+    batch_size = len(azi)
+    
+    # Create an empty tensor to hold the rotation matrices
+    rotation_matrices = torch.empty((batch_size, 3, 3), device=azi.device)
+    
+    # Loop through each set of Euler angles and convert to rotation matrix
+    for i in range(batch_size):
+        rotation_matrices[i] = euler_to_rot(azi[i], ele[i], theta[i])
+    
+    return rotation_matrices
+
 def deg_to_rad(ang:torch.Tensor) -> torch.Tensor:
     return ang * (torch.pi / 180)
 
+import torch
+
+def symmetric_orthogonalization(x: torch.Tensor) -> torch.Tensor:
+    """Maps 9D input vectors onto SO(3) via symmetric orthogonalization
+    """
+    # Reshape the input into 3x3 matrices
+    m = x.view(-1, 3, 3)
+    
+    u, _, v = torch.svd(m)
+    
+    det = torch.det(torch.matmul(u, v.transpose(1, 2)))
+    
+    # Adjust the last column of u based on the determinant
+    u_adjusted = torch.cat([u[:, :, :-1], u[:, :, -1:] * det.view(-1, 1, 1)], dim=2)
+    
+    # Compute the final orthogonalized rotation matrices
+    r = torch.matmul(u_adjusted, v.transpose(1, 2))
+    
+    return r
+
+def batch_symm_ortho(x:torch.Tensor) -> torch.Tensor:
+    """Convert a batch of 3d matrix into a batch of 3x3 rotation matrices via SVD"""
+    batch_size = len(x)
+    
+    # Create an empty tensor to hold the rotation matrices
+    rotation_matrices = torch.empty((batch_size, 3, 3), device=x.device)
+    
+    # Loop through each set of Euler angles and convert to rotation matrix
+    for i in range(batch_size):
+        rotation_matrices[i] = symmetric_orthogonalization(x)
+    
+    return rotation_matrices
     

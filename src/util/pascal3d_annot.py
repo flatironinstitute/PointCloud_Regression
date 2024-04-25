@@ -161,7 +161,7 @@ class MaskOut(nn.Module):
         label = torch.as_tensor(label, device=x.device)
         batch, _, _ = x.shape
         assert batch == label.size(0)
-        assert (label >= 0).all() and (label < self.n_category).all() # "Labels out of range"
+        assert (label >= 0).all() and (label < self.n_category).all() # labels out of range
 
         all_idx = torch.arange(batch)
 

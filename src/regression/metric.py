@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from enum import Enum
 from abc import ABC, abstractmethod
+import scipy
+
 import regression.adj_util as A
 import regression.config as cf
 import regression.penalties as P
@@ -223,18 +225,34 @@ def mean_square(q_predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor
     mse = torch.nn.MSELoss()
     return mse(q_predict, q_target)
 
-def frobenius_norm_loss(adj_mat_src: torch.Tensor, adj_mat_trg: torch.Tensor, reduce = True) -> torch.Tensor:
+def frobenius_norm_loss(mat_src: torch.Tensor, mat_trg: torch.Tensor, reduce = True) -> torch.Tensor:
     """
     get the Frobenius norm of batches of rotation between
     source and the target adjugate matrix
-    both should be batches of 4x4 matrix
+    both should be batches of matrix
+    can be 4x4 adj or plain rot matrix
     """
-    assert(adj_mat_src.shape == adj_mat_trg.shape)
+    assert(mat_src.shape == mat_trg.shape)
 
-    if adj_mat_src.dim() < 3:
-        adj_mat_src.unsqueeze(dim = 0)
-        adj_mat_trg.unsqueeze(dim = 0)
-    losses = (adj_mat_src - adj_mat_trg).norm(dim = [1,2])
+    if mat_src.dim() < 3:
+        mat_src.unsqueeze(dim = 0)
+        mat_trg.unsqueeze(dim = 0)
+    losses = (mat_src - mat_trg).norm(dim = [1,2])
     loss = losses.mean() if reduce else losses
     return loss
+
+def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> np.ndarray:
+    relative_rot = torch.matmul(pred_rot.transpose(1,2), gt_rot)
+
+    # Compute the matrix logarithm by scipy
+    # disp=False suppresses warnings, and the return includes an error estimate
+    log_rot, err_est = scipy.linalg.logm(relative_rot.detach().numpy(), disp=False)
+
+    frob_norm = torch.norm(torch.from_numpy(log_rot), p='fro')
+    
+    # Calculate the geodesic distance
+    r_angle = frob_norm / np.sqrt(2)
+    
+    return r_angle
+
 

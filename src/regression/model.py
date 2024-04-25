@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Optional, Dict, Tuple
 
 import util.pascal3d_annot as P
+import regression.adj_util as A
 
 class PointNet(nn.Module):
     def __init__(self, hidden_size:int, num_points:int, adj_option:str, batch_norm:bool) -> None:
@@ -64,14 +65,29 @@ class PointFeatCNN(nn.Module):
         return x.squeeze()
 
 class Regress2DNet(nn.Module):
-    def __init__(self, n_class:int, regress_dim:int) -> None:
+    def __init__(self, n_class:int, output_option:str) -> None:
         super().__init__()
         self.basic_model = MobileNet(3)
         self.n_class = n_class
-        self.regress_dim = regress_dim
-        self.head_a = RegressHead(1024, n_class, regress_dim)
-        self.head_e = RegressHead(1024, n_class, regress_dim)
-        self.head_t = RegressHead(1024, n_class, regress_dim)
+        self.output = output_option
+        if output_option == "s1":
+            self.regress_dim = 2
+        elif output_option == "adjugate":
+            self.regress_dim = 10
+        elif output_option == "svd":
+            self.regress_dim = 9
+
+        self.head_a = RegressHead(1024, n_class, self.regress_dim)
+        self.head_e = RegressHead(1024, n_class, self.regress_dim)
+        self.head_t = RegressHead(1024, n_class, self.regress_dim)
+
+        self.hidden_mlp = nn.Sequential(
+                            nn.Linear(1024, 512),
+                            nn.LeakyReLU(),
+                            torch.nn.Linear(512, 256),
+                            torch.nn.LeakyReLU(),
+                            torch.nn.Linear(256, self.regress_dim*n_class)
+                            )
 
         self.mask = P.MaskOut(n_class)
 
@@ -82,11 +98,23 @@ class Regress2DNet(nn.Module):
         x = self.basic_model(x)
         batch, _, _ = x.shape
 
-        x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)
-        x_e = self.mask(self.head_e(x).view(batch, self.n_class, self.regress_dim), label)
-        x_t = self.mask(self.head_t(x).view(batch, self.n_class, self.regress_dim), label)
+        if self.output == "s1":
+            x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)
+            x_e = self.mask(self.head_e(x).view(batch, self.n_class, self.regress_dim), label)
+            x_t = self.mask(self.head_t(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.batch_euler_to_rot(x_a, x_e, x_t)
+            return rot
+        
+        elif self.output == "adjugate":
+            adj = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.batch_vec_to_rot(adj)
+            return rot
+        
+        elif self.output == "svd":
+            mat = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.batch_symm_ortho(mat)
+            return rot
 
-        return x_a, x_e, x_t
 
 
 class MobileNet(nn.Module):

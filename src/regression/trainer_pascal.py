@@ -43,14 +43,12 @@ class RegNetTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx:int) -> torch.Tensor | np.Dict[str, np.Any]:
         image, anno = batch
         curr_category = anno["category"]
-        pred_a, pred_e, pred_t = self(image, self.category2idx[curr_category])
+        rot = self(image, self.category2idx[curr_category])
 
         anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
-        pred_euler = A.batch_euler_to_rot(pred_a, pred_e, pred_t)
-
-        return 
+        return M.frobenius_norm_loss(rot, anno_euler)
     
 class RegNetDataModule(pl.LightningModule):
     hparams: cf.PascalDataConfig
