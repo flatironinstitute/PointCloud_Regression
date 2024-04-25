@@ -46,9 +46,9 @@ class PointNetTrainer(pl.LightningModule):
 
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
-
+            # record the learned quaternion to check the normalization and signs
             vectors = A.adj_to_vec(A.batch_quat_to_adj(pred))
-            # writer = tb.SummaryWriter()
+            # writer = tb.SummaryWriter() 
             # writer.add_text('train/learned adj', str(vectors.tolist()))
             # writer.close()
 

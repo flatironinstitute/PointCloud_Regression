@@ -241,18 +241,28 @@ def frobenius_norm_loss(mat_src: torch.Tensor, mat_trg: torch.Tensor, reduce = T
     loss = losses.mean() if reduce else losses
     return loss
 
-def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> np.ndarray:
+def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
     relative_rot = torch.matmul(pred_rot.transpose(1,2), gt_rot)
 
     # Compute the matrix logarithm by scipy
     # disp=False suppresses warnings, and the return includes an error estimate
     log_rot, err_est = scipy.linalg.logm(relative_rot.detach().numpy(), disp=False)
 
-    frob_norm = torch.norm(torch.from_numpy(log_rot), p='fro')
+    frob_norm = torch.norm(torch.from_numpy(log_rot, device=pred_rot.device), p='fro')
     
     # Calculate the geodesic distance
-    r_angle = frob_norm / np.sqrt(2)
+    r_angle = frob_norm / torch.sqrt(2)
     
     return r_angle
+
+def geodesic_batch_mean(pred_rot: torch.Tensor, gt_rot: torch.Tensor) -> torch.Tensor:
+    """Calculate the mean geodesic distance for a batch of rotation matrices."""
+    # Calculate geodesic distance for each item in the batch
+    batch_geodesic_distances = torch.tensor([
+        geodesic_dist(pred_rot[i], gt_rot[i]) for i in range(pred_rot.shape[0])
+    ], device=pred_rot.device)
+
+    # Return the mean of the batch geodesic distances
+    return batch_geodesic_distances.mean()
 
 
