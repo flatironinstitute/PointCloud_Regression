@@ -199,7 +199,7 @@ class PointNetDataModule(pl.LightningDataModule):
         return torch.utils.data.DataLoader(self.ds_val, self.batch_size, shuffle=False, num_workers=self.config.num_data_workers)
 
 
-@hydra.main(config_path=None, config_name='train', version_base='1.1' ) 
+@hydra.main(config_path=None, config_name='train', version_base='1.1') 
 def main(config: cf.PointNetTrainConfig):
     logger = logging.getLogger(__name__)
     trainer = pl.Trainer(

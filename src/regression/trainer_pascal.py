@@ -44,7 +44,7 @@ class RegNetTrainer(pl.LightningModule):
         self.log('train/frobenius loss respect to g.t.', loss)
         self.log('train/geodesic distance respect to g.t.', geodesic)
     
-    def training_step(self, batch, batch_idx:int) -> torch.Tensor | np.Dict[str, np.Any]:
+    def training_step(self, batch, batch_idx:int) -> torch.Tensor:
         image, anno = batch
         curr_category = anno["category"]
         rot = self(image, self.category2idx[curr_category])
@@ -59,10 +59,29 @@ class RegNetTrainer(pl.LightningModule):
         self.training_log(batch, loss, geodesic)
         return loss
     
+    def validation_log(self, batch, loss:torch.Tensor, geodesic:torch.Tensor) -> None:
+        self.log('val/frobenius loss respect to g.t.', loss)
+        self.log('val/geodesic distance respect to g.t.', geodesic)        
+
+    def validation_step(self, batch, batch_idx:int) -> torch.Tensor:
+        image, anno = batch
+        curr_category = anno["category"]
+        rot = self(image, self.category2idx[curr_category])
+
+        anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
+
+        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+
+        loss =  M.frobenius_norm_loss(rot, anno_euler)
+        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        self.validation_log(batch, loss, geodesic)
+        return loss
+    
 class RegNetDataModule(pl.LightningModule):
     hparams: cf.PascalDataConfig
 
-    def __init__(self, config: cf.PascalDataConfig) -> None:
+    def __init__(self, config: cf.PascalDataConfig, batch_size: int) -> None:
         super().__init__()
         self.config = config
 
@@ -96,4 +115,28 @@ class RegNetDataModule(pl.LightningModule):
         return torch.utils.data.DataLoader(self.ds_val, self.batch_size, shuffle=False, num_workers=self.config.num_data_workers)
 
 
-        
+@hydra.main(config_path=None, config_name='train', version_base='1.1')
+def main(config: cf.RegNetTrainingConfig):
+    logger = logging.getLogger(__name__)
+    trainer = pl.Trainer(
+        accelerator=config.device, 
+        devices=config.num_gpus,
+        log_every_n_steps=config.log_every,
+        max_epochs=config.num_epochs)
+    
+    data_config = config.data
+
+    dm = RegNetDataModule(data_config, config.batch_size)
+    model = RegNetTrainer(config)
+
+    trainer.fit(model,dm)
+
+    if trainer.is_global_zero:
+        logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frobenius loss respect to g.t."]}')
+        logger.info(f'Finished training. Final Geodesic distance: {trainer.logged_metrics["train/geodesic distance respect to g.t."]}')
+
+if __name__ == '__main__':
+    from hydra.core.config_store import ConfigStore
+    cs = ConfigStore()
+    cs.store('train', node=cf.RegNetTrainingConfig)
+    main()
