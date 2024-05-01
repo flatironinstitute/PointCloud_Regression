@@ -91,6 +91,10 @@ class ModelNetDataset(Dataset):
 
 class Pascal3DDataset(Dataset):
     def __init__(self, category:List[str], num_sample:int, base_path:str, resize:int) -> None:
+        """@args: base_path should be the top dir of Pascal data
+        i.e. on rusty cluster it should be: 
+        /mnt/home/clin/ceph/dataset/pascal_3d/PASCAL3D+_release1.0/
+        """
         super().__init__()
         self.category = category # we must provide a (list of) category
         self.num_sample = num_sample

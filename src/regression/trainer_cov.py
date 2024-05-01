@@ -177,8 +177,6 @@ def main(config: cf.PointNetTrainConfig):
         logger.info(f'Finished training. Final Angle Difference: {trainer.logged_metrics["train/angle difference respect to g.t."]}')
 
 
-    
-
 if __name__ == '__main__':
     from hydra.core.config_store import ConfigStore
     cs = ConfigStore()
