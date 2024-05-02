@@ -75,7 +75,7 @@ class PascalDataConfig:
     limit: Optional[int] = None
     num_data_workers: int = 16
     # options for model net
-    category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
+    category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
     
 @dataclasses.dataclass
 class RegNetConfig:
