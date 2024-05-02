@@ -124,7 +124,7 @@ class MobileNet(nn.Module):
         @notice: here we keep the backbone of MobileNet, but 
         retain the output layer to RegressHead for a special task
         """
-        super().__init__()
+        super(MobileNet, self).__init__()
         self.model = nn.Sequential(
             ConvBatchNorm(channel_in, 32, 2),
             ConvDepthWise(32, 64, 1),
