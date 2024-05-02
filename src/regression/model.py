@@ -165,7 +165,7 @@ class RegressHead(nn.Module):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         return self.head(x)
 
-class ConvDepthWise(torch.nn.Module):
+class ConvDepthWise(nn.Module):
     def __init__(self, input:int, output:int, stride:int) ->torch.Tensor:
         super().__init__()
         self.depth_wise = nn.Sequential(
@@ -181,7 +181,7 @@ class ConvDepthWise(torch.nn.Module):
         x = self.depth_wise(x)
         return x
 
-class ConvBatchNorm(torch.nn.Module):
+class ConvBatchNorm(nn.Module):
     def __init__(self, input:int, output:int, stride:int) -> torch.Tensor:
         super().__init__
         self.conv_batch = nn.Sequential(
