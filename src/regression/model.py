@@ -115,36 +115,44 @@ class Regress2DNet(nn.Module):
             rot = A.batch_symm_ortho(mat)
             return rot
 
-
-
 class MobileNet(nn.Module):
-    def __init__(self, channel_in:int) -> None:
+    def __init__(self, channel_in:int):
         """@args
         channel_in: number of channels of the input image
         @notice: here we keep the backbone of MobileNet, but 
         retain the output layer to RegressHead for a special task
         """
-        super(MobileNet, self).__init__()
-        self.model = nn.Sequential(
-            ConvBatchNorm(channel_in, 32, 2),
-            ConvDepthWise(32, 64, 1),
-            ConvDepthWise(64, 128, 2),
-            ConvDepthWise(128, 128, 1),
-            ConvDepthWise(128, 256, 2),
-            ConvDepthWise(256, 256, 1),
-            ConvDepthWise(256, 512, 2),
-            ConvDepthWise(512, 512, 1),
-            ConvDepthWise(512, 512, 1),
-            ConvDepthWise(512, 512, 1),
-            ConvDepthWise(512, 512, 1),
-            ConvDepthWise(512, 512, 1),
-            ConvDepthWise(512, 1024, 2),
-            ConvDepthWise(1024, 1024, 1),
-            nn.AdaptiveAvgPool2d(1)
-        )
+        super().__init__()
+        # Initial ConvBatchNorm layer
+        self.conv1 = ConvBatchNorm(channel_in, 32, 2)
+        # Define each ConvDepthWise layer individually
+        self.conv2 = ConvDepthWise(32, 64, 1)
+        self.conv3 = ConvDepthWise(64, 128, 2)
+        self.conv4 = ConvDepthWise(128, 128, 1)
+        self.conv5 = ConvDepthWise(128, 256, 2)
+        self.conv6 = ConvDepthWise(256, 256, 1)
+        self.conv7 = ConvDepthWise(256, 512, 2)
+        # Multiple ConvDepthWise layers
+        self.conv8_13 = nn.ModuleList([ConvDepthWise(512, 512, 1) for _ in range(6)])
+        self.conv14 = ConvDepthWise(512, 1024, 2)
+        self.conv15 = ConvDepthWise(1024, 1024, 1)
+        # Adaptive pooling layer
+        self.pool = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, x) -> torch.Tensor:
-        x = self.model(x)
+        # Apply each layer sequentially
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.conv7(x)
+        for conv in self.conv8_13:
+            x = conv(x)
+        x = self.conv14(x)
+        x = self.conv15(x)
+        x = self.pool(x)
         x = x.view(-1, 1024)
         return x
 
@@ -167,7 +175,7 @@ class RegressHead(nn.Module):
 
 class ConvDepthWise(nn.Module):
     def __init__(self, input:int, output:int, stride:int) ->torch.Tensor:
-        super(ConvDepthWise, self).__init__()
+        super().__init__()
         self.depth_wise = nn.Sequential(
                             nn.Conv2d(input, input, 3, stride, 1, groups=input, bias=False),
                             nn.BatchNorm2d(input),
@@ -183,7 +191,7 @@ class ConvDepthWise(nn.Module):
 
 class ConvBatchNorm(nn.Module):
     def __init__(self, input:int, output:int, stride:int) -> torch.Tensor:
-        super(ConvBatchNorm, self).__init__
+        super().__init__
         self.conv_batch = nn.Sequential(
             nn.Conv2d(input, output, 3, stride, 1, bias=True),
             nn.BatchNorm2d(output),
