@@ -77,6 +77,10 @@ class RegNetTrainer(pl.LightningModule):
 
         self.validation_log(batch, loss, geodesic)
         return loss
+
+    def configure_optimizers(self):
+        optim = torch.optim.AdamW(self.regnet.parameters(), lr=self.hparams.optim.learning_rate)
+        return optim
     
 class RegNetDataModule(pl.LightningModule):
     hparams: cf.PascalDataConfig
