@@ -83,13 +83,9 @@ class RegNetTrainer(pl.LightningModule):
         return optim
     
 class RegNetDataModule(pl.LightningModule):
-    hparams: cf.PascalDataConfig
-
     def __init__(self, config: cf.PascalDataConfig, batch_size: int) -> None:
         super().__init__()
         self.config = config
-
-        self.save_hyperparameters(config)
 
         self.ds = Pascal3DDataset(self.config.category, self.config.num_sample,
                                   self.config.file_path, self.config.crop)
@@ -133,7 +129,7 @@ def main(config: cf.RegNetTrainingConfig):
     dm = RegNetDataModule(data_config, config.batch_size)
     model = RegNetTrainer(config)
 
-    trainer.fit(model,dm)
+    trainer.fit(model, dm)
 
     if trainer.is_global_zero:
         logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frobenius loss respect to g.t."]}')

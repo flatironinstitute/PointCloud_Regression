@@ -212,7 +212,7 @@ def main(config: cf.PointNetTrainConfig):
     dm = PointNetDataModule(data_config, config.batch_size)
     model = PointNetTrainer(config)
 
-    trainer.fit(model,dm)
+    trainer.fit(model, dm)
 
     if trainer.is_global_zero:
         if config.model_config.adj_option == "adjugate":
