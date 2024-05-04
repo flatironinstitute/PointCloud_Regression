@@ -70,6 +70,7 @@ class Regress2DNet(nn.Module):
         self.basic_model = MobileNet(3)
         self.n_class = n_class
         self.output = output_option
+        self.regress_dim = 2
         if output_option == "s1":
             self.regress_dim = 2
         elif output_option == "adjugate":
