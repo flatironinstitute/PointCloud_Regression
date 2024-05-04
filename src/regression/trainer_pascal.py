@@ -86,6 +86,7 @@ class RegNetDataModule(pl.LightningModule):
     def __init__(self, config: cf.PascalDataConfig, batch_size: int) -> None:
         super().__init__()
         self.config = config
+        self.batch_size = batch_size
 
         self.ds = Pascal3DDataset(self.config.category, self.config.num_sample,
                                   self.config.file_path, self.config.crop)
