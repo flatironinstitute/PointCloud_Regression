@@ -191,7 +191,7 @@ class ConvDepthWise(nn.Module):
 
 class ConvBatchNorm(nn.Module):
     def __init__(self, input:int, output:int, stride:int) -> torch.Tensor:
-        super().__init__
+        super().__init__()
         self.conv_batch = nn.Sequential(
             nn.Conv2d(input, output, 3, stride, 1, bias=True),
             nn.BatchNorm2d(output),
