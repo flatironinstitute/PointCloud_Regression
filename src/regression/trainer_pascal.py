@@ -85,7 +85,7 @@ class RegNetTrainer(pl.LightningModule):
         optim = torch.optim.AdamW(self.regnet.parameters(), lr=self.hparams.optim.learning_rate)
         return optim
     
-class RegNetDataModule(pl.LightningModule):
+class RegNetDataModule(pl.LightningDataModule):
     def __init__(self, config: cf.PascalDataConfig, batch_size: int) -> None:
         super().__init__()
         self.config = config
