@@ -21,16 +21,13 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     obj = ann_data['record']['objects'][0][0][0]
 
     category = obj['class'][0] # a string
-    viewpoint = obj.get('viewpoint', None) #make it None if default value not provided
-    if viewpoint is None:
-        return {}
-
-    if 'distance' not in viewpoint.dtype.names:
-        # Additional processing
-        return {}
-
-    elif viewpoint['distance'][0][0][0][0] == 0:
-        return {}
+    for obj in ann_data['record']['objects'][0][0][0]:
+        if not obj['viewpoint']:
+            return {}
+        elif 'distance' not in obj['viewpoint'].dtype.names:
+            return {}
+        elif obj['viewpoint']['distance'][0][0][0][0] == 0:
+            return {}
 
 
     viewpoint = obj['viewpoint']
