@@ -74,7 +74,7 @@ class PascalDataConfig:
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
-    # options for model net
+    # options for pascal3D+
     category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
     
 @dataclasses.dataclass

@@ -30,9 +30,9 @@ class PointNetTrainer(pl.LightningModule):
 
         self.save_hyperparameters(config)
         self.point_net = PointNet(config.model_config.hidden_size, 
-                                    config.model_config.num_points,
-                                    config.model_config.adj_option,
-                                    config.model_config.batch_norm)  
+                                  config.model_config.num_points,
+                                  config.model_config.adj_option,
+                                  config.model_config.batch_norm)  
         self.cf = config 
 
     def forward(self, x):

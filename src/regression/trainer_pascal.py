@@ -25,10 +25,13 @@ class RegNetTrainer(pl.LightningModule):
         if not omegaconf.OmegaConf.is_config(config):
             config = omegaconf.OmegaConf.structured(config)
 
+        self.save_hyperparameters(config)
+
         config.network.n_class = len(config.data.category)
         self.category2idx = dict(zip(config.data.category, range(len(config.data.category))))
 
-        self.save_hyperparameters(config)
+        print("debug category dict: ")
+        print(self.category2idx)
 
         if config.network.regress_option == 'adjugate':
             regress_dim = 10
