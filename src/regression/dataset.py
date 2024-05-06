@@ -121,8 +121,8 @@ class Pascal3DDataset(Dataset):
 
         img_loader = P.RoILoaderPascal(self.category, curr_id,
                                        self.resize_shape, 
-                                       self.base_path+"Annotations"+curr_category+"pascal/", 
-                                       self.base_path+"images"+curr_category+"pascal/")
+                                       self.base_path+"Annotations"+curr_category, 
+                                       self.base_path+"images"+curr_category)
         curr_img = img_loader()
         curr_anno = P.read_annotaions(self.anno_path + curr_id + ".mat")
 
