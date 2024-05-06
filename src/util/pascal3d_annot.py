@@ -83,13 +83,15 @@ class RoILoaderPascal(RoILoader):
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
     we keep image_id to force the loaded anno and image to be consistent
+    context_scale: scaling factor of ROI
+    resize_shape: an integer, as we assume it resize to a square
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
         super().__init__(resize_shape)
         self.anno_path = anno_path + image_id + ".mat"
         self.image_path = image_path + image_id + ".jpg"
-        self.context_scale = float(resize_shape[0])/(resize_shape[0] - 2*context_pad)
+        self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
 
     def context_padding(self, boxes:np.ndarray) -> np.ndarray:  
         """@args:bbox is np.ndarray
