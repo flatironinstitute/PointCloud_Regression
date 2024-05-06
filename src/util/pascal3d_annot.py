@@ -88,7 +88,6 @@ class RoILoaderPascal(RoILoader):
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
-        super().__init__(resize_shape)
         self.anno_path = anno_path + image_id + ".mat"
         self.image_path = image_path + image_id + ".jpg"
         self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
