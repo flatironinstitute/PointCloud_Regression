@@ -116,13 +116,13 @@ class Pascal3DDataset(Dataset):
         random_pick = np.random.randint(len(self.all_annos))
         curr_file = self.all_annos[random_pick]
         curr_id = curr_file[-15:-4] # slice the id from the abs path
-        curr_category = curr_file[len(self.base_path):-15] # slice the category from the abs path
+        curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
         print("current category:", curr_category)
 
         img_loader = P.RoILoaderPascal(self.category, curr_id,
                                        self.resize_shape, 
                                        self.base_path+"Annotations"+curr_category, 
-                                       self.base_path+"images"+curr_category)
+                                       self.base_path+"Images"+curr_category) # the picked curr
         curr_img = img_loader()
         curr_anno = P.read_annotaions(self.anno_path + curr_id + ".mat")
 
