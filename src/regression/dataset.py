@@ -104,8 +104,8 @@ class Pascal3DDataset(Dataset):
         self.all_annos = []
         self.all_image = []
         for c in self.category:
-            curr_anno_path = base_path + "/" + "Annotations/" + c + "_pascal/"
-            curr_image_path = base_path + "/" + "Images/" + c + "_pascal/"
+            curr_anno_path = base_path + "Annotations/" + c + "_pascal/"
+            curr_image_path = base_path + "Images/" + c + "_pascal/"
             self.all_annos += F.list_files_in_dir(curr_anno_path)
             self.all_image += F.list_files_in_dir(curr_image_path)
 
@@ -117,11 +117,12 @@ class Pascal3DDataset(Dataset):
         curr_file = self.all_annos[random_pick]
         curr_id = curr_file[-15:-4] # slice the id from the abs path
         curr_category = curr_file[len(self.base_path):-15] # slice the category from the abs path
+        print("current category:", curr_category)
 
         img_loader = P.RoILoaderPascal(self.category, curr_id,
                                        self.resize_shape, 
-                                       self.base_path+"/"+"Annotations"+curr_category+"pascal/", 
-                                       self.base_path+"/"+"images"+curr_category+"pascal/")
+                                       self.base_path+"Annotations"+curr_category+"pascal/", 
+                                       self.base_path+"images"+curr_category+"pascal/")
         curr_img = img_loader()
         curr_anno = P.read_annotaions(self.anno_path + curr_id + ".mat")
 
