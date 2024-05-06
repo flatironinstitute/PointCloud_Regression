@@ -30,9 +30,6 @@ class RegNetTrainer(pl.LightningModule):
         config.network.n_class = len(config.data.category)
         self.category2idx = dict(zip(config.data.category, range(len(config.data.category))))
 
-        print("debug category dict: ")
-        print(self.category2idx)
-
         if config.network.regress_option == 'adjugate':
             regress_dim = 10
         elif config.network.regress_option == 'svd':
