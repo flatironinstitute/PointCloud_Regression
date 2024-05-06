@@ -142,7 +142,6 @@ class RoILoaderPascal(RoILoader):
         return self.transform(roi_img)
 
     def __call__(self) -> np.ndarray:
-        super().__call__()
         anno = read_annotaions(self.anno_path)
         image = cv.imread(self.image_path)
 
