@@ -21,11 +21,15 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     obj = ann_data['record']['objects'][0][0][0]
 
     category = obj['class'][0] # a string
-    if not obj['viewpoint']:
+    viewpoint = obj.get('viewpoint', None) #make it None if default value not provided
+    if viewpoint is None:
         return {}
-    elif 'distance' not in obj['viewpoint'].dtype.names:
+
+    if 'distance' not in viewpoint.dtype.names:
+        # Additional processing
         return {}
-    elif obj['viewpoint']['distance'][0][0][0][0] == 0:
+
+    elif viewpoint['distance'][0][0][0][0] == 0:
         return {}
 
 
@@ -88,8 +92,7 @@ class RoILoaderPascal(RoILoader):
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
-        print("image id in constructor of anno: ", image_id)
-        print("anno path in constructor of anno: ", anno_path)
+        
         self.anno_path = anno_path + image_id + ".mat"
         self.image_path = image_path + image_id + ".jpg"
         self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
