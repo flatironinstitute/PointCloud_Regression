@@ -68,7 +68,7 @@ class RoILoader:
         self.pixel_mean, self.pixel_std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
         self.transform = transforms.Compose([
-            transforms.ToPILImage(), # most attribute of torchvision needed
+            transforms.ToPILImage(), # most attribute of torchvision's Transform needed
             transforms.Resize(self.resize),
             transforms.ToTensor(),
             transforms.Normalize(mean=self.pixel_mean, std=self.pixel_std)
