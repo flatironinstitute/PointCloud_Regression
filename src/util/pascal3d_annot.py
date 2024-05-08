@@ -27,7 +27,7 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     for obj in ann_data['record']['objects'][0][0][0]:
         logging.debug(f"Processing object with keys: {obj.dtype.names}")
         if not obj['viewpoint']:
-            logging.error("Viewpoint missing in object")
+            logging.error(f"Viewpoint missing in object from file: {ann_file}")
             continue
         elif 'distance' not in obj['viewpoint'].dtype.names:
             logging.error("Distance missing in viewpoint")
