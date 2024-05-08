@@ -89,7 +89,7 @@ class RoILoaderPascal(RoILoader):
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
                  anno_path:str, image_path:str, context_pad:int = 16) -> None:
-        
+        print("current image id: ", image_id)
         self.anno_path = anno_path + image_id + ".mat"
         self.image_path = image_path + image_id + ".jpg"
         self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
@@ -101,6 +101,7 @@ class RoILoaderPascal(RoILoader):
         if self.context_scale == 1.0:
             return boxes
         _boxes = boxes.astype(np.float32).copy()
+        print("current bbox is: ", _boxes)
         x1, y1, x2, y2 = _boxes[0], _boxes[1], _boxes[2], _boxes[3]
 
         # Compute the expanded region
