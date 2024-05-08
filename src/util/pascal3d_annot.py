@@ -28,12 +28,12 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
         logging.debug(f"Processing object with keys: {obj.dtype.names}")
         if not obj['viewpoint']:
             logging.error("Viewpoint missing in object")
-            return {}
+            continue
         elif 'distance' not in obj['viewpoint'].dtype.names:
             logging.error("Distance missing in viewpoint")
-            return {}
+            continue
         elif obj['viewpoint']['distance'][0][0][0][0] == 0:
-            return {}
+            continue
 
 
     viewpoint = obj['viewpoint']
