@@ -3,6 +3,7 @@ import scipy.io
 import cv2 as cv
 import torch
 import torch.nn as nn
+import logging
 
 from typing import Dict, Any, Tuple, List
 
@@ -18,13 +19,18 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
 
     img_file = ann_data['record']['filename'][0][0][0]
     segmented = ann_data['record']['segmented'][0][0][0]
+    logging.debug(f"Image file: {img_file}, Segmented: {segmented}")
+
     obj = ann_data['record']['objects'][0][0][0]
 
     category = obj['class'][0] # a string
     for obj in ann_data['record']['objects'][0][0][0]:
+        logging.debug(f"Processing object with keys: {obj.dtype.names}")
         if not obj['viewpoint']:
+            logging.error("Viewpoint missing in object")
             return {}
         elif 'distance' not in obj['viewpoint'].dtype.names:
+            logging.error("Distance missing in viewpoint")
             return {}
         elif obj['viewpoint']['distance'][0][0][0][0] == 0:
             return {}
@@ -38,6 +44,8 @@ def read_annotaions(ann_file:str) -> Dict[str, Any]:
     theta = viewpoint['theta'][0][0][0][0] # in plane rotation of the image
     principal = np.array([viewpoint['px'][0][0][0][0],
                             viewpoint['py'][0][0][0][0]])
+    logging.debug(f"bbox: {obj['bbox'][0]}")
+
     curr_dict = {
             'image_name': img_file,
             'category': category, 
