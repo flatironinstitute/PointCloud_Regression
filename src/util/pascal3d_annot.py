@@ -129,7 +129,7 @@ class RoILoaderPascal(RoILoader):
         @Note: the final resizing will be specified in self.transforms
         """
         h, w, _ = image.shape
-        x1, x2, y1, y2 = self.context_padding(bbox)
+        x1, y1, x2, y2 = self.context_padding(bbox)
 
         x1 = max(x1, 0)
         y1 = max(y1, 0)
