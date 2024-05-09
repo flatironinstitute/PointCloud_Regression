@@ -37,8 +37,8 @@ class RegNetTrainer(pl.LightningModule):
 
         self.regnet = Regress2DNet(config.network.n_class, regress_dim)
     
-    def forward(self, x:torch.Tensor) -> torch.Tensor:
-        return self.regnet(x)
+    def forward(self, x:torch.Tensor, category_id:int) -> torch.Tensor:
+        return self.regnet(x, category_id)
     
     def training_log(self, batch, loss:torch.Tensor, geodesic:torch.Tensor) -> None:
         self.log('train/frobenius loss respect to g.t.', loss)
