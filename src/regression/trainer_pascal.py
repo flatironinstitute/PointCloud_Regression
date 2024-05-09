@@ -80,6 +80,7 @@ class RegNetTrainer(pl.LightningModule):
         total_geo = 0
         for img, anno in zip(images, annos):
             curr_category = anno["category"]
+            logging.debug(f"current categories are: {curr_category}")
             rot = self(img, self.category2idx[curr_category])
 
             anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
