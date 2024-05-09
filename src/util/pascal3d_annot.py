@@ -78,7 +78,7 @@ class RoILoader:
     that being said, we do resize after cropping
     """
     def __init__(self, resize_shape:int) -> None:
-        self.resize = resize_shape
+        self.resize = (resize_shape, resize_shape)
         self.pixel_mean, self.pixel_std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
         self.transform = transforms.Compose([
@@ -93,11 +93,10 @@ class RoILoaderPascal(RoILoader):
     with the bbox, the augmentation and preprocess are 
     inherits from the base class
     @args:
-    image_path&anno_path: the based path of those two folders 
+    image_path: the base path of the image folder 
     will be specified in the Pascal3DDataset
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
-    we keep image_id to force the loaded anno and image to be consistent
     context_scale: scaling factor of ROI
     resize_shape: an integer, as we assume it resize to a square
     anno_info: current annotation info, cause one image may contains
