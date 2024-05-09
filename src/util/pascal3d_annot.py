@@ -69,7 +69,7 @@ def read_annotaions(ann_file:str) -> List[Dict[str, Any]]:
             }
         annotations.append(curr_dict)
     
-    return curr_dict
+    return annotations
 
 class RoILoader:
     """@brief: base class to do image preprocess and augmentation
