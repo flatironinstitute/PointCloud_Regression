@@ -26,17 +26,16 @@ def read_annotaions(ann_file:str) -> List[Dict[str, Any]]:
 
     img_file = ann_data['record']['filename'][0][0][0]
     segmented = ann_data['record']['segmented'][0][0][0]
-    logging.debug(f"Image file: {img_file}, Segmented: {segmented}")
 
     objects = ann_data['record']['objects'][0][0][0]
 
     for o in objects:
-        logging.debug(f"Processing object with keys: {o.dtype.names}")
+        #logging.debug(f"Processing object with keys: {o.dtype.names}")
         if not o['viewpoint']:
-            logging.error(f"Viewpoint missing in one object from file: {ann_file}")
+            #logging.error(f"Viewpoint missing in one object from file: {ann_file}")
             continue
         elif 'distance' not in o['viewpoint'].dtype.names:
-            logging.error("Distance missing in viewpoint")
+            #logging.error("Distance missing in viewpoint")
             continue
         elif o['viewpoint']['distance'][0][0][0][0] == 0:
             continue

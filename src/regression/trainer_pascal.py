@@ -17,7 +17,7 @@ import regression.metric as M
 import regression.adj_util as A
 from regression.dataset import Pascal3DDataset
 
-from torch.utils.data.dataloader import default_collate  
+from torch.utils.data.dataloader import default_collate
 
 
 class RegNetTrainer(pl.LightningModule):
@@ -83,7 +83,8 @@ class RegNetTrainer(pl.LightningModule):
         total_geo = 0
         for img, anno in zip(images, annos):
             curr_category = anno["category"]
-            logging.debug(f"current categories are: {curr_category}")
+            print(f"Type of anno: {type(anno)} - Content of anno: {anno}")
+
             rot = self(img, self.category2idx[curr_category])
 
             anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
@@ -154,6 +155,7 @@ class RegNetDataModule(pl.LightningDataModule):
         # Use default_collate to properly batch images and handle annotations
         batched_images = default_collate(images)
         batched_annos = default_collate(annotations)
+        print("batched dict: ", batched_annos)
         
         return batched_images, batched_annos
 
