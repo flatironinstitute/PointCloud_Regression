@@ -154,7 +154,11 @@ class RegNetDataModule(pl.LightningDataModule):
         
         # Use default_collate to properly batch images and handle annotations
         batched_images = default_collate(images)
-        batched_annos = default_collate(annotations)
+        batched_annos = []
+        keys = annotations[0].keys()  # Assuming all dictionaries have the same structure
+        for i in range(len(annotations)):
+            single_anno = {key: annotations[i][key] for key in keys}
+            batched_annos.append(single_anno)
         print("batched dict: ", batched_annos)
         
         return batched_images, batched_annos
