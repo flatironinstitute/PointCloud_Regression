@@ -17,6 +17,9 @@ import regression.metric as M
 import regression.adj_util as A
 from regression.dataset import Pascal3DDataset
 
+from torch.utils.data.dataloader import default_collate  
+
+
 class RegNetTrainer(pl.LightningModule):
     hparams: cf.RegNetTrainingConfig
 
@@ -142,13 +145,17 @@ class RegNetDataModule(pl.LightningDataModule):
     
     @staticmethod
     def custom_collate_fn(batch):
-        images = []
-        annotations = []
-        for item in batch:  # batch is a list of lists of tuples (image, annotation)
-            for img, anno in item:
-                images.append(img)
-                annotations.append(anno)
-        return torch.stack(images), annotations
+        flat_list = [item for sublist in batch for item in sublist]
+    
+        # Separate images and annotations
+        images = [item[0] for item in flat_list]
+        annotations = [item[1] for item in flat_list]
+        
+        # Use default_collate to properly batch images and handle annotations
+        batched_images = default_collate(images)
+        batched_annos = default_collate(annotations)
+        
+        return batched_images, batched_annos
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1')
 def main(config: cf.RegNetTrainingConfig):
