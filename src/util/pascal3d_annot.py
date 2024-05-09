@@ -5,63 +5,69 @@ import torch
 import torch.nn as nn
 import logging
 
+import regression.adj_util as A
+
 from typing import Dict, Any, Tuple, List
 
 from torchvision import transforms
 
     
-def read_annotaions(ann_file:str) -> Dict[str, Any]:
+def read_annotaions(ann_file:str) -> List[Dict[str, Any]]:
     """@args:
     segmented: indicate whether there is a semantic map available
     objects: wrap up all pose related items and bounding box 
+    @notice:
+    some picture may contains multiple objects, thuus there is 
+    a list of annotations in a single "ann_file"
     """
     ann_data = scipy.io.loadmat(ann_file)
+
+    annotations = []
 
     img_file = ann_data['record']['filename'][0][0][0]
     segmented = ann_data['record']['segmented'][0][0][0]
     logging.debug(f"Image file: {img_file}, Segmented: {segmented}")
 
-    obj = ann_data['record']['objects'][0][0][0]
+    objects = ann_data['record']['objects'][0][0][0]
 
-    category = obj['class'][0] # a string
-    for obj in ann_data['record']['objects'][0][0][0]:
-        logging.debug(f"Processing object with keys: {obj.dtype.names}")
-        if not obj['viewpoint']:
-            logging.error(f"Viewpoint missing in object from file: {ann_file}")
+    for o in objects:
+        logging.debug(f"Processing object with keys: {o.dtype.names}")
+        if not o['viewpoint']:
+            logging.error(f"Viewpoint missing in one object from file: {ann_file}")
             continue
-        elif 'distance' not in obj['viewpoint'].dtype.names:
+        elif 'distance' not in o['viewpoint'].dtype.names:
             logging.error("Distance missing in viewpoint")
             continue
-        elif obj['viewpoint']['distance'][0][0][0][0] == 0:
+        elif o['viewpoint']['distance'][0][0][0][0] == 0:
             continue
 
+        bbox = o['bbox'][0]
+        viewpoint = o['viewpoint']
+        azimuth = viewpoint['azimuth'][0][0][0][0] 
+        elevation = viewpoint['elevation'][0][0][0][0] 
+        distance = viewpoint['distance'][0][0][0][0]
+        focal = viewpoint['focal'][0][0][0][0]
+        theta = viewpoint['theta'][0][0][0][0] # in plane rotation of the image
+        principal = np.array([viewpoint['px'][0][0][0][0],
+                                viewpoint['py'][0][0][0][0]])
 
-    viewpoint = obj['viewpoint']
-    azimuth = viewpoint['azimuth'][0][0][0][0] 
-    elevation = viewpoint['elevation'][0][0][0][0] 
-    distance = viewpoint['distance'][0][0][0][0]
-    focal = viewpoint['focal'][0][0][0][0]
-    theta = viewpoint['theta'][0][0][0][0] # in plane rotation of the image
-    principal = np.array([viewpoint['px'][0][0][0][0],
-                            viewpoint['py'][0][0][0][0]])
-    logging.debug(f"bbox: {obj['bbox'][0]}")
-
-    curr_dict = {
-            'image_name': img_file,
-            'category': category, 
-            'bbox': obj['bbox'][0],
-            'view':{
-                'azimuth': azimuth,
-                'elevation': elevation,
-                'distance': distance,
-                'focal': focal,
-                'theta': theta
-            },
-            'intrinsic':{
-                'focal': focal,
-                'principal': principal
+        curr_dict = {
+                'image_name': img_file,
+                'category': o['class'][0], # a string 
+                'bbox': bbox,
+                'view':{
+                    'azimuth': azimuth,
+                    'elevation': elevation,
+                    'distance': distance,
+                    'focal': focal,
+                    'theta': theta
+                },
+                'intrinsic':{
+                    'focal': focal,
+                    'principal': principal
+                }
             }
-        }
+        annotations.append(curr_dict)
     
     return curr_dict
 
@@ -94,16 +100,18 @@ class RoILoaderPascal(RoILoader):
     we keep image_id to force the loaded anno and image to be consistent
     context_scale: scaling factor of ROI
     resize_shape: an integer, as we assume it resize to a square
+    anno_info: current annotation info, cause one image may contains
+    different objects
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
-                 anno_path:str, image_path:str, context_pad:int = 16) -> None:
+                 anno_info:Dict[str,Any], image_path:str, context_pad:int = 16) -> None:
         super().__init__(resize_shape)
-        self.anno_path = anno_path + image_id + ".mat"
+        self.anno_info = anno_info
         self.image_path = image_path + image_id + ".jpg"
         self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
 
     def context_padding(self, boxes:np.ndarray) -> np.ndarray:  
-        """@args:bbox is np.ndarray
+        """@args:bbox is a np.ndarray
         we will do clipping in the roi_cropping
         """
         if self.context_scale == 1.0:
@@ -144,7 +152,7 @@ class RoILoaderPascal(RoILoader):
         y2 = min(y2, h-1)
 
         if x1 >= x2 or y1 >= y2:
-            raise ValueError('[bad box] ' + "h,w=%s,%s   %s  %s" % (h, w, '(%s,%s,%s,%s)' % tuple(bbox), '(%s,%s,%s,%s)' % (x1, y1, x2, y2)))
+            raise ValueError('[bad box] ' + "h, w=%s, %s   %s  %s" % (h, w, '(%s, %s, %s, %s)' % tuple(bbox), '(%s, %s, %s, %s)' % (x1, y1, x2, y2)))
 
         roi_img = image[y1:y2, x1:x2]
         roi_img = roi_img[:,:,::-1]
@@ -152,15 +160,13 @@ class RoILoaderPascal(RoILoader):
         return self.transform(roi_img)
 
     def __call__(self) -> np.ndarray:
-        anno = read_annotaions(self.anno_path)
         image = cv.imread(self.image_path)
 
-        print(f"Current annotation keys: {anno.keys()}")
-        bbox = anno.get('bbox')
+        bbox = self.anno_info.get('bbox')
         if bbox is None:
             print("Error: 'bbox' key missing in annotation.")
 
-        return self.crop_roi(image, anno['bbox'])
+        return self.crop_roi(image, bbox)
 
 class MaskOut(nn.Module):
     def __init__(self, n_category:int) -> None:
@@ -182,6 +188,14 @@ class MaskOut(nn.Module):
 
         masked_shape = (batch, x.size()[2:]) # the second dim is the dim of pose representation
         return x[all_idx, label].view(*masked_shape)
+    
+def compose_euler_dict(anno:Dict[str,Any]) -> Dict[str, Any]:
+    curr_dict = {"category":anno["category"],
+                 "a":A.deg_to_rad(torch.tensor(anno["view"]["azimuth"])),
+                 "e":A.deg_to_rad(torch.tensor(anno["view"]["elevation"])),
+                 "t":A.deg_to_rad(torch.tensor(anno["view"]["theta"]))}
+    
+    return curr_dict
 
 
 

@@ -45,38 +45,58 @@ class RegNetTrainer(pl.LightningModule):
         self.log('train/geodesic distance respect to g.t.', geodesic)
     
     def training_step(self, batch, batch_idx:int) -> torch.Tensor:
-        image, anno = batch
-        curr_category = anno["category"]
-        rot = self(image, self.category2idx[curr_category])
+        images, annos = batch
 
-        anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
+        total_loss = 0
+        total_geo = 0
+        for img, anno in zip(images, annos):
+            curr_category = anno["category"]
+            rot = self(img, self.category2idx[curr_category])
 
-        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+            anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
 
-        loss =  M.frobenius_norm_loss(rot, anno_euler)
-        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+            anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
-        self.training_log(batch, loss, geodesic)
-        return loss
+            loss =  M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+            total_loss += loss
+            total_geo += geodesic
+        
+        average_loss = total_loss / len(images)
+        average_geod = total_geo / len(images)
+
+        self.training_log(batch, average_loss, average_geod)
+        return average_loss
     
     def validation_log(self, batch, loss:torch.Tensor, geodesic:torch.Tensor) -> None:
         self.log('val/frobenius loss respect to g.t.', loss)
         self.log('val/geodesic distance respect to g.t.', geodesic)        
 
     def validation_step(self, batch, batch_idx:int) -> torch.Tensor:
-        image, anno = batch
-        curr_category = anno["category"]
-        rot = self(image, self.category2idx[curr_category])
+        images, annos = batch
 
-        anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
+        total_loss = 0
+        total_geo = 0
+        for img, anno in zip(images, annos):
+            curr_category = anno["category"]
+            rot = self(img, self.category2idx[curr_category])
 
-        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+            anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
 
-        loss =  M.frobenius_norm_loss(rot, anno_euler)
-        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+            anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
-        self.validation_log(batch, loss, geodesic)
-        return loss
+            loss =  M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+            total_loss += loss
+            total_geo += geodesic
+        
+        average_loss = total_loss / len(images)
+        average_geod = total_geo / len(images)
+
+        self.validation_log(batch, average_loss, average_geod)
+        return average_loss
 
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.regnet.parameters(), lr=self.hparams.optim.learning_rate)
@@ -110,11 +130,24 @@ class RegNetDataModule(pl.LightningDataModule):
         )
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.ds_train, self.batch_size, shuffle=True, num_workers=self.config.num_data_workers)
+        return torch.utils.data.DataLoader(self.ds_train, self.batch_size, shuffle=True, 
+                                           num_workers=self.config.num_data_workers,
+                                           collate_fn=self.custom_collate_fn)
 
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.ds_val, self.batch_size, shuffle=False, num_workers=self.config.num_data_workers)
-
+        return torch.utils.data.DataLoader(self.ds_val, self.batch_size, shuffle=False, 
+                                           num_workers=self.config.num_data_workers,
+                                           collate_fn=self.custom_collate_fn)
+    
+    @staticmethod
+    def custom_collate_fn(batch):
+        images = []
+        annotations = []
+        for item in batch:  # batch is a list of lists of tuples (image, annotation)
+            for img, anno in item:
+                images.append(img)
+                annotations.append(anno)
+        return torch.stack(images), annotations
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1')
 def main(config: cf.RegNetTrainingConfig):

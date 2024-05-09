@@ -112,25 +112,25 @@ class Pascal3DDataset(Dataset):
     def __len__(self):
         return self.num_sample
 
-    def __getitem__(self, index) -> Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]:
+    def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         random_pick = np.random.randint(len(self.all_annos))
         curr_file = self.all_annos[random_pick]
         curr_id = curr_file[-15:-4] # slice the id from the abs path
         curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
 
-        img_loader = P.RoILoaderPascal(self.category, curr_id,
-                                       self.resize_shape, 
-                                       self.base_path+"Annotations"+curr_category, 
-                                       self.base_path+"Images"+curr_category) # the picked curr
-        curr_img = img_loader()
-        curr_anno = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
+        curr_annos = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
 
-        curr_dict = {"category":curr_anno["category"],
-                     "a":A.deg_to_rad(torch.tensor(curr_anno["view"]["azimuth"])),
-                     "e":A.deg_to_rad(torch.tensor(curr_anno["view"]["elevation"])),
-                     "t":A.deg_to_rad(torch.tensor(curr_anno["view"]["theta"]))}
+        data_list = []
+        for anno in curr_annos:
+            img_loader = P.RoILoaderPascal(self.category, curr_id,
+                                           self.resize_shape, anno, 
+                                           self.base_path+"Images"+curr_category) 
+            curr_img = img_loader()
 
-        return torch.as_tensor(curr_img, dtype=torch.float32), curr_dict
+            curr_dict = P.compose_euler_dict(anno)
+            data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
+
+        return data_list
 
     
 class KittiOdometryDataset(Dataset):
