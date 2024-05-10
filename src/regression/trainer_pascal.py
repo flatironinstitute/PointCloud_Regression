@@ -48,60 +48,43 @@ class RegNetTrainer(pl.LightningModule):
         self.log('train/geodesic distance respect to g.t.', geodesic)
     
     def training_step(self, batch, batch_idx:int) -> torch.Tensor:
-        images, annos = batch
+        images, annos, categories = batch
 
-        total_loss = 0
-        total_geo = 0
-        for img, anno in zip(images, annos):
-            curr_category = anno["category"]
-            rot = self(img, self.category2idx[curr_category])
-
-            anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
-
-            anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
-
-            loss =  M.frobenius_norm_loss(rot, anno_euler)
-            geodesic = M.geodesic_batch_mean(rot, anno_euler)
-
-            total_loss += loss
-            total_geo += geodesic
+        category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
         
-        average_loss = total_loss / len(images)
-        average_geod = total_geo / len(images)
+        rot = self(images, category_indices)
 
-        self.training_log(batch, average_loss, average_geod)
-        return average_loss
+        anno_a, anno_e, anno_t = annos['a'], annos['e'], annos['t']
+
+        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+
+        loss =  M.frobenius_norm_loss(rot, anno_euler)
+        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        self.training_log(batch, loss, geodesic)
+        return loss
     
     def validation_log(self, batch, loss:torch.Tensor, geodesic:torch.Tensor) -> None:
         self.log('val/frobenius loss respect to g.t.', loss)
         self.log('val/geodesic distance respect to g.t.', geodesic)        
 
     def validation_step(self, batch, batch_idx:int) -> torch.Tensor:
-        images, annos = batch
+        images, annos, categories = batch
 
-        total_loss = 0
-        total_geo = 0
-        for img, anno in zip(images, annos):
-            curr_category = anno["category"]
-            print(f"Type of anno: {type(anno)} - Content of anno: {anno}")
-
-            rot = self(img, self.category2idx[curr_category])
-
-            anno_a, anno_e, anno_t = anno['a'], anno['e'], anno['t']
-
-            anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
-
-            loss =  M.frobenius_norm_loss(rot, anno_euler)
-            geodesic = M.geodesic_batch_mean(rot, anno_euler)
-
-            total_loss += loss
-            total_geo += geodesic
+        category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
         
-        average_loss = total_loss / len(images)
-        average_geod = total_geo / len(images)
+        rot = self(images, category_indices)
 
-        self.validation_log(batch, average_loss, average_geod)
-        return average_loss
+        anno_a, anno_e, anno_t = annos['a'], annos['e'], annos['t']
+
+        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+
+        loss =  M.frobenius_norm_loss(rot, anno_euler)
+        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+
+        self.validation_log(batch, loss, geodesic)
+        return loss
 
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.regnet.parameters(), lr=self.hparams.optim.learning_rate)
@@ -151,6 +134,7 @@ class RegNetDataModule(pl.LightningDataModule):
         # Separate images and annotations
         images = [item[0] for item in flat_list]
         annotations = [item[1] for item in flat_list]
+        categories = [item[1]['category'] for item in flat_list]  
         
         # Use default_collate to properly batch images and handle annotations
         batched_images = default_collate(images)
@@ -159,9 +143,11 @@ class RegNetDataModule(pl.LightningDataModule):
         for i in range(len(annotations)):
             single_anno = {key: annotations[i][key] for key in keys}
             batched_annos.append(single_anno)
+        batched_categories = default_collate(categories)
+
         print("batched dict: ", batched_annos)
         
-        return batched_images, batched_annos
+        return batched_images, batched_annos, batched_categories
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1')
 def main(config: cf.RegNetTrainingConfig):
