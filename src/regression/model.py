@@ -96,8 +96,9 @@ class Regress2DNet(nn.Module):
         """@args:
         label: an integer that represent the class number
         """
+        print("check shape of x before forward: ", x.shape)
         x = self.basic_model(x)
-        batch, _, _ = x.shape
+        batch, _ = x.shape
 
         if self.output == "s1":
             x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)
