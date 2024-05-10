@@ -84,6 +84,9 @@ class RegNetTrainer(pl.LightningModule):
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
+        print("check shape of rot: ", rot.shape)
+        print("check shape of euler: ", anno_euler.shape)
+
         loss =  M.frobenius_norm_loss(rot, anno_euler)
         geodesic = M.geodesic_batch_mean(rot, anno_euler)
 
@@ -150,8 +153,6 @@ class RegNetDataModule(pl.LightningDataModule):
             batched_annos.append(single_anno)
         batched_categories = default_collate(categories)
 
-        print("batched dict: ", batched_annos)
-        
         return batched_images, batched_annos, batched_categories
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1')
