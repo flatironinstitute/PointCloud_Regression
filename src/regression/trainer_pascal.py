@@ -77,8 +77,10 @@ class RegNetTrainer(pl.LightningModule):
         
         rot = self(images, category_indices)
 
-        anno_a, anno_e, anno_t = annos['a'], annos['e'], annos['t']
-        print("check anno batch: ", anno_a)
+        # Extract a, e, t from a batch of dictionaries
+        anno_a = torch.tensor([anno['a'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_e = torch.tensor([anno['e'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_t = torch.tensor([anno['t'] for anno in annos], dtype=torch.float32, device=self.device)
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
