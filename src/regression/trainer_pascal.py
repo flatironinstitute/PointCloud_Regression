@@ -54,7 +54,10 @@ class RegNetTrainer(pl.LightningModule):
         
         rot = self(images, category_indices)
 
-        anno_a, anno_e, anno_t = annos['a'], annos['e'], annos['t']
+        # Extract a, e, t from a batch of dictionaries
+        anno_a = torch.tensor([anno['a'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_e = torch.tensor([anno['e'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_t = torch.tensor([anno['t'] for anno in annos], dtype=torch.float32, device=self.device)
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
@@ -72,8 +75,6 @@ class RegNetTrainer(pl.LightningModule):
         images, annos, categories = batch
 
         category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
-
-        print("dim of the loaded image batch: ", images.shape)
         
         rot = self(images, category_indices)
 
@@ -89,7 +90,6 @@ class RegNetTrainer(pl.LightningModule):
 
         loss =  M.frobenius_norm_loss(rot, anno_euler)
         geodesic = M.geodesic_batch_mean(rot, anno_euler)
-
 
         self.validation_log(batch, loss, geodesic)
         return loss
