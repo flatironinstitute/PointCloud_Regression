@@ -184,8 +184,8 @@ class MaskOut(nn.Module):
 
         all_idx = torch.arange(batch)
 
-        masked_shape = (batch, x.size()[2:]) # the second dim is the dim of pose representation
-        return x[all_idx, label].view(*masked_shape)
+        masked_shape = (batch,) + tuple(x.size()[2:]) # the second dim is the dim of pose representation
+        return x[all_idx, label].view(masked_shape)
     
 def compose_euler_dict(anno:Dict[str,Any]) -> Dict[str, Any]:
     curr_dict = {"category":anno["category"],
