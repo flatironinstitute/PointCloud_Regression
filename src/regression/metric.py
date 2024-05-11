@@ -253,9 +253,9 @@ def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
 
     frob_norm = torch.norm(log_rot_tensor, p='fro')
     
-    # Calculate the geodesic distance
-    r_angle = frob_norm / torch.sqrt(2)
-    
+    # Compute the geodesic distance
+    r_angle = frob_norm / torch.sqrt(torch.tensor(2.0, device=frob_norm.device))
+ 
     return r_angle
 
 def geodesic_batch_mean(pred_rot: torch.Tensor, gt_rot: torch.Tensor) -> torch.Tensor:
