@@ -74,6 +74,7 @@ class Regress2DNet(nn.Module):
         if output_option == "s1":
             self.regress_dim = 2
         elif output_option == "adjugate":
+            print("check option in regnet: ", self.output)
             self.regress_dim = 10
         elif output_option == "svd":
             self.regress_dim = 9

@@ -38,7 +38,7 @@ class RegNetTrainer(pl.LightningModule):
         elif config.network.regress_option == 'svd':
             regress_dim = 9
 
-        self.regnet = Regress2DNet(config.network.n_class, regress_dim)
+        self.regnet = Regress2DNet(config.network.n_class, config.network.regress_option)
     
     def forward(self, x:torch.Tensor, category_id:int) -> torch.Tensor:
         return self.regnet(x, category_id)
