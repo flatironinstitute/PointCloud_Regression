@@ -248,7 +248,10 @@ def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
     # disp=False suppresses warnings, and the return includes an error estimate
     log_rot, err_est = scipy.linalg.logm(relative_rot.detach().cpu().numpy(), disp=False)
 
-    frob_norm = torch.norm(torch.from_numpy(log_rot, device=pred_rot.device), p='fro')
+    log_rot_tensor = torch.from_numpy(log_rot).to(pred_rot.device)
+
+
+    frob_norm = torch.norm(log_rot_tensor, p='fro')
     
     # Calculate the geodesic distance
     r_angle = frob_norm / torch.sqrt(2)
