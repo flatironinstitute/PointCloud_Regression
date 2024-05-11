@@ -258,6 +258,7 @@ def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
 def geodesic_batch_mean(pred_rot: torch.Tensor, gt_rot: torch.Tensor) -> torch.Tensor:
     """Calculate the mean geodesic distance for a batch of rotation matrices."""
     # Calculate geodesic distance for each item in the batch
+    print("check batch dim for geodist: ", pred_rot.shape)
     batch_geodesic_distances = torch.tensor([
         geodesic_dist(pred_rot[i], gt_rot[i]) for i in range(pred_rot.shape[0])
     ], device=pred_rot.device)
