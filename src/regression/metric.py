@@ -246,7 +246,7 @@ def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
 
     # Compute the matrix logarithm by scipy
     # disp=False suppresses warnings, and the return includes an error estimate
-    log_rot, err_est = scipy.linalg.logm(relative_rot.detach().numpy(), disp=False)
+    log_rot, err_est = scipy.linalg.logm(relative_rot.detach().cpu().numpy(), disp=False)
 
     frob_norm = torch.norm(torch.from_numpy(log_rot, device=pred_rot.device), p='fro')
     
