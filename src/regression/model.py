@@ -88,7 +88,7 @@ class Regress2DNet(nn.Module):
                             torch.nn.Linear(512, 256),
                             torch.nn.LeakyReLU(),
                             torch.nn.Linear(256, self.regress_dim*n_class)
-                            )
+                        )
 
         self.mask = P.MaskOut(n_class)
 
@@ -110,6 +110,7 @@ class Regress2DNet(nn.Module):
         
         elif self.output == "adjugate":
             adj = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            print("check shape of adjugate after masking: ", adj.shape)
             rot = A.batch_vec_to_rot(adj)
             return rot
         
