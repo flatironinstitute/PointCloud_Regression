@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from enum import Enum
 from abc import ABC, abstractmethod
-import scipy
+import scipy.linalg
 
 import regression.adj_util as A
 import regression.config as cf
@@ -242,7 +242,7 @@ def frobenius_norm_loss(mat_src: torch.Tensor, mat_trg: torch.Tensor, reduce = T
     return loss
 
 def geodesic_dist(pred_rot:torch.Tensor, gt_rot:torch.Tensor) -> torch.Tensor:
-    relative_rot = torch.matmul(pred_rot.transpose(1,2), gt_rot)
+    relative_rot = torch.matmul(gt_rot.t(), pred_rot)
 
     # Compute the matrix logarithm by scipy
     # disp=False suppresses warnings, and the return includes an error estimate
