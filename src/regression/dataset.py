@@ -113,8 +113,8 @@ class Pascal3DDataset(Dataset):
         return self.num_sample
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
-        random_pick = np.random.randint(len(self.all_annos))
-        curr_file = self.all_annos[random_pick]
+        # random_pick = np.random.randint(len(self.all_annos))
+        curr_file = self.all_annos[index]
         curr_id = curr_file[-15:-4] # slice the id from the abs path
         curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
 
