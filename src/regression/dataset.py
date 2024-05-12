@@ -110,7 +110,7 @@ class Pascal3DDataset(Dataset):
             self.all_image += F.list_files_in_dir(curr_image_path)
 
     def __len__(self):
-        return self.num_sample
+        return len(self.all_annos)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         # random_pick = np.random.randint(len(self.all_annos))
