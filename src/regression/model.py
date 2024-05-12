@@ -74,7 +74,6 @@ class Regress2DNet(nn.Module):
         if output_option == "s1":
             self.regress_dim = 2
         elif output_option == "adjugate":
-            print("check option in regnet: ", self.output)
             self.regress_dim = 10
         elif output_option == "svd":
             self.regress_dim = 9
@@ -111,13 +110,12 @@ class Regress2DNet(nn.Module):
         
         elif self.output == "adjugate":
             adj = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            print("check shape of adjugate after masking: ", adj.shape)
             rot = A.batch_vec_to_rot(adj)
             return rot
         
         elif self.output == "svd":
             mat = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.batch_symm_ortho(mat)
+            rot = A.symmetric_orthogonalization(mat)
             return rot
 
 class MobileNet(nn.Module):

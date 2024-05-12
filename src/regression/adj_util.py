@@ -48,7 +48,7 @@ def vec_to_rot(vec: torch.Tensor, trace_norm: bool=False) -> torch.Tensor:
     trace = vec[0] + vec[4] + vec[7] + vec[9]
     if trace_norm:
         vec /= trace
-    rot_mat = torch.empty(3,3,device=vec.device)
+    rot_mat = torch.empty(3, 3, device=vec.device)
     rot_mat[0][0] = vec[0] + vec[4] - vec[7] - vec[9]
     rot_mat[0][1] = 2*(-vec[3] + vec[5])
     rot_mat[0][2] = 2*(vec[2] + vec[6])
@@ -145,8 +145,8 @@ def cross_product(u, v):
 def sixdim_to_rotmat(sixdim: torch.Tensor) -> torch.Tensor:
     if sixdim.dim() < 2:
         sixdim = sixdim.unsqueeze(dim=0)
-    x_raw = sixdim[:,0:3]#batch*3
-    y_raw = sixdim[:,3:6]#batch*3
+    x_raw = sixdim[:,0:3] # batch*3
+    y_raw = sixdim[:,3:6] # batch*3
         
     x = normalize_vectors(x_raw)
     z = cross_product(x,y_raw) 
@@ -334,7 +334,7 @@ def deg_to_rad(ang:torch.Tensor) -> torch.Tensor:
 import torch
 
 def symmetric_orthogonalization(x: torch.Tensor) -> torch.Tensor:
-    """Maps 9D input vectors onto SO(3) via symmetric orthogonalization
+    """Maps a batch of 9D input vectors onto SO(3) via symmetric orthogonalization
     """
     # Reshape the input into 3x3 matrices
     m = x.view(-1, 3, 3)
@@ -351,16 +351,4 @@ def symmetric_orthogonalization(x: torch.Tensor) -> torch.Tensor:
     
     return r
 
-def batch_symm_ortho(x:torch.Tensor) -> torch.Tensor:
-    """Convert a batch of 3d matrix into a batch of 3x3 rotation matrices via SVD"""
-    batch_size = len(x)
-    
-    # Create an empty tensor to hold the rotation matrices
-    rotation_matrices = torch.empty((batch_size, 3, 3), device=x.device)
-    
-    # Loop through each set of Euler angles and convert to rotation matrix
-    for i in range(batch_size):
-        rotation_matrices[i] = symmetric_orthogonalization(x)
-    
-    return rotation_matrices
     
