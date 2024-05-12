@@ -74,7 +74,7 @@ def batch_vec_to_rot(vec_batch:torch.Tensor, trace_norm: bool=False) -> torch.Te
 def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     """
     convert the batch of 10 dim vector from network's output
-    to the adjugate matrices; equivalent to [Avec to A]
+    to the adjugate matrices; equivalent to [Avec to A]***
     """
     if vec.dim() < 2:
         vec.unsqueeze_(dim = 0)
@@ -83,7 +83,7 @@ def vec_to_adj(vec: torch.Tensor) -> torch.Tensor:
     adj = vec.new_zeros(vec.shape[0],4,4)
     adj[:,idx[0],idx[1]] = vec
     adj[:,idx[1],idx[0]] = vec
-    return adj#.squeeze()
+    return adj #.squeeze()
 
 def adj_to_vec(adj: torch.Tensor) -> torch.Tensor:
     """
@@ -110,7 +110,7 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     if evs.dim() < 3:
         evs.unsqueeze_(dim = 0)
 
-    return evs[:,:,0]#.squeeze()
+    return evs[:,:,0] #.squeeze()
 
 def batch_vec_to_quat(vec_batch:torch.Tensor) -> torch.Tensor:
     """convert batch of 10-vec to quaternions

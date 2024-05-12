@@ -73,10 +73,12 @@ class Regress2DNet(nn.Module):
         self.regress_dim = 2
         if output_option == "s1":
             self.regress_dim = 2
-        elif output_option == "adjugate":
+        elif output_option == "adjugate" or "a-matrix":
             self.regress_dim = 10
         elif output_option == "svd":
             self.regress_dim = 9
+        elif output_option == "six-d":
+            self.regress_dim = 6
 
         self.head_a = RegressHead(1024, n_class, self.regress_dim)
         self.head_e = RegressHead(1024, n_class, self.regress_dim)
@@ -109,13 +111,24 @@ class Regress2DNet(nn.Module):
             return rot
         
         elif self.output == "adjugate":
-            adj = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.batch_vec_to_rot(adj)
+            adj_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.batch_vec_to_rot(adj_vec)
             return rot
         
         elif self.output == "svd":
-            mat = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.symmetric_orthogonalization(mat)
+            svd_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.symmetric_orthogonalization(svd_vec)
+            return rot
+        
+        elif self.output == "a-matrix":
+            ten_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            quat = A.batch_vec_to_quat(ten_d)
+            rot = A.quat_to_rotmat(quat)
+            return rot
+        
+        elif self.output == "six-d":
+            six_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            rot = A.sixdim_to_rotmat(six_d)
             return rot
 
 class MobileNet(nn.Module):

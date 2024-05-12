@@ -17,6 +17,9 @@ class LossFn(ABC):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         pass
 
+"""@brief: the Frobenius loss specifically between two
+adjugate quaternion matrices
+"""
 class FrobneiusLoss(LossFn):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                         config: cf.PointNetTrainConfig) -> torch.Tensor:
