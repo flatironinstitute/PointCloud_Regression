@@ -112,24 +112,19 @@ class Regress2DNet(nn.Module):
         
         elif self.output == "adjugate":
             adj_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.batch_vec_to_rot(adj_vec)
-            return rot
+            return adj_vec
         
         elif self.output == "svd":
             svd_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.symmetric_orthogonalization(svd_vec)
-            return rot
+            return svd_vec
         
         elif self.output == "a-matrix":
             ten_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            quat = A.batch_vec_to_quat(ten_d)
-            rot = A.quat_to_rotmat(quat)
-            return rot
+            return ten_d
         
         elif self.output == "six-d":
             six_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
-            rot = A.sixdim_to_rotmat(six_d)
-            return rot
+            return six_d
 
 class MobileNet(nn.Module):
     def __init__(self, channel_in:int):

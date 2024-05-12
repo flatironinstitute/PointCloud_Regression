@@ -99,30 +99,23 @@ def adj_to_vec(adj: torch.Tensor) -> torch.Tensor:
 
 def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     """
-    convert a vector to unit quaternion
+    convert a batch of vector to unit quaternion
     args:
     vec: 10 dim vector (default) from netwrok training
     return:
     4 dim unit quaternion
     """
     adj = vec_to_adj(vec)
-    _, evs = torch.symeig(adj, eigenvectors=True)
-    if evs.dim() < 3:
-        evs.unsqueeze_(dim = 0)
+    eigenvalues, eigenvectors = torch.linalg.eigh(adj, UPLO='U')
+    
+    first_eigenvectors = eigenvectors[:, :, 0]
 
-    return evs[:,:,0] #.squeeze()
+    return first_eigenvectors
 
 def batch_vec_to_quat(vec_batch:torch.Tensor) -> torch.Tensor:
     """convert batch of 10-vec to quaternions
-    """
-    b, _ = vec_batch.shape
-    quat_batch = torch.empty(b, 4, device=vec_batch.device)
-
-    for i in range(len(vec_batch)):
-        curr_quat = vec_to_quat(vec_batch[i])
-        quat_batch[i] = curr_quat
-        
-    return quat_batch
+    """ 
+    return vec_to_quat(vec_batch)
 
 # N x 3 -> N x 3 (unit norm)
 def normalize_vectors(vecs):

@@ -33,12 +33,17 @@ class RegNetTrainer(pl.LightningModule):
         config.network.n_class = len(config.data.category)
         self.category2idx = dict(zip(config.data.category, range(len(config.data.category))))
 
-        if config.network.regress_option == 'adjugate':
+        self.option = config.network.regress_option
+        if self.option == 'adjugate':
             regress_dim = 10
-        elif config.network.regress_option == 'svd':
+        elif self.option == 'svd':
             regress_dim = 9
+        elif self.option == 'a-matrix':
+            regress_dim = 10
+        elif self.option == 'six-d':
+            regress_dim = 6
 
-        self.regnet = Regress2DNet(config.network.n_class, config.network.regress_option)
+        self.regnet = Regress2DNet(config.network.n_class, self.option)
     
     def forward(self, x:torch.Tensor, category_id:int) -> torch.Tensor:
         return self.regnet(x, category_id)
@@ -52,7 +57,9 @@ class RegNetTrainer(pl.LightningModule):
 
         category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
         
-        rot = self(images, category_indices)
+        # we output vector with correspoinding size accordingly
+        # then further process them w.r.t different options
+        pred = self(images, category_indices) 
 
         # Extract a, e, t from a batch of dictionaries
         anno_a = torch.tensor([anno['a'] for anno in annos], dtype=torch.float32, device=self.device)
@@ -61,8 +68,30 @@ class RegNetTrainer(pl.LightningModule):
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
-        loss =  M.frobenius_norm_loss(rot, anno_euler)
-        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+        if self.option == "adjugate":
+            adj = A.vec_to_adj(pred) # batch conversion
+            euler_quat = A.rotmat_to_quat(anno_euler)
+            quat_adj = A.batch_quat_to_adj(euler_quat)
+            loss =  M.frobenius_norm_loss(adj, quat_adj)
+
+            rot = A.batch_vec_to_rot(pred)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+        
+        elif self.option == "svd":
+            rot = A.symmetric_orthogonalization(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif self.option == "a-matrix":
+            quat = A.batch_vec_to_quat(pred)
+            rot = A.quat_to_rotmat(quat)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif self.option == "six-d":
+            rot = A.sixdim_to_rotmat(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
 
         self.training_log(batch, loss, geodesic)
         return loss
@@ -76,7 +105,7 @@ class RegNetTrainer(pl.LightningModule):
 
         category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
         
-        rot = self(images, category_indices)
+        pred = self(images, category_indices) 
 
         # Extract a, e, t from a batch of dictionaries
         anno_a = torch.tensor([anno['a'] for anno in annos], dtype=torch.float32, device=self.device)
@@ -85,11 +114,30 @@ class RegNetTrainer(pl.LightningModule):
 
         anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
 
-        print("check shape of rot: ", rot.shape)
-        print("check shape of euler: ", anno_euler.shape)
+        if self.option == "adjugate":
+            adj = A.vec_to_adj(pred) # batch conversion
+            euler_quat = A.rotmat_to_quat(anno_euler)
+            quat_adj = A.batch_quat_to_adj(euler_quat)
+            loss =  M.frobenius_norm_loss(adj, quat_adj)
 
-        loss =  M.frobenius_norm_loss(rot, anno_euler)
-        geodesic = M.geodesic_batch_mean(rot, anno_euler)
+            rot = A.batch_vec_to_rot(pred)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+        
+        elif self.option == "svd":
+            rot = A.symmetric_orthogonalization(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif self.option == "a-matrix":
+            quat = A.batch_vec_to_quat(pred)
+            rot = A.quat_to_rotmat(quat)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif self.option == "six-d":
+            rot = A.sixdim_to_rotmat(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
 
         self.validation_log(batch, loss, geodesic)
         return loss

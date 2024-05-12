@@ -8,7 +8,7 @@ import regression.adj_util as A
 import regression.config as cf
 import regression.penalties as P
 
-###Factory Pattern of the loss functions###
+### Factory Pattern of the loss functions ###
 class Loss(Enum):
     frobenius, chordal_quat, chordal_amat, six_d, rmsd = 1, 2, 3, 4, 5
 
@@ -31,18 +31,21 @@ class FrobneiusLoss(LossFn):
             loss = loss + config.cnstr_pre*norm_penalty
         q_pred = A.batch_adj_to_quat(adj_pred)
         return loss, q_pred
-    #Singleton pattern
+    # Singleton pattern
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(FrobneiusLoss, cls).__new__(cls)
         return cls.instance
 
+"""@brief: we follow Peretroukhin's precedure, in the function "vec_to_quat"
+1. covert 10-vec to a 4x4 mat; 2. find quat from eigensystem
+"""
 class AMatirxLoss(LossFn):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         anti_quat = A.vec_to_quat(predict)
         loss = chordal_square_loss(anti_quat, q_target)
         return loss, anti_quat
-    #Singleton pattern
+    # Singleton pattern
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(AMatirxLoss, cls).__new__(cls)
@@ -52,7 +55,7 @@ class ChordalLoss(LossFn):
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
         loss = chordal_square_loss(predict, q_target)
         return loss, predict
-    #Singleton pattern
+    # Singleton pattern
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(ChordalLoss, cls).__new__(cls)
@@ -75,7 +78,7 @@ class SixDLoss(LossFn):
         loss = frobenius_norm_loss(rot_mat, mat_quat)
         q_pred = A.rotmat_to_quat(rot_mat)
         return loss, q_pred
-    #Singleton pattern
+    # Singleton pattern
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(SixDLoss, cls).__new__(cls)
@@ -115,7 +118,7 @@ class LossFactory:
         }
         return switcher.get(loss_name)
 
-###helper functions of loss, and angle differences###
+### helper functions for loss, and metrics such as angle differences ###
 def rmsd_diff(pred_quat:torch.Tensor, cloud:torch.Tensor) -> torch.Tensor:
     """Calculate batch average of RMSD difference; 
     args: quat and cloud are directly load from batch

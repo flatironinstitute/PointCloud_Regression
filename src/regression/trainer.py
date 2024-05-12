@@ -42,7 +42,7 @@ class PointNetTrainer(pl.LightningModule):
         net_option = self.cf.model_config.adj_option
         cloud, _ = batch
         print("debug input size: ", cloud.shape)
-        rmsd_error = M.rmsd_diff(pred, cloud)
+        rmsd_error = M.rmsd_diff(pred, cloud) # mse between 2 cloud
 
         if net_option == "adjugate": #if output was 10 dim, pass the converted adj to log
             self.log('train/frob_loss', loss)
