@@ -236,6 +236,8 @@ def main(config: cf.PointNetTrainConfig):
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal_square"]}')
         elif config.model_config.adj_option == "l2chordal":
             logger.info(f'Finished training. Final Chordal: {trainer.logged_metrics["train/chordal L2 norm"]}')
+        elif config.model_config.adj_option == "svd":
+            logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/Frobenius norm after svd"]}')
         else:
             logger.info(f'Finished training. Final RMSD: {trainer.logged_metrics["train/rmsd loss"]}')
         
