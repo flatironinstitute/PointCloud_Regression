@@ -93,7 +93,8 @@ class Regress2DNet(nn.Module):
                             torch.nn.LeakyReLU(),
                             torch.nn.Linear(256, self.regress_dim*n_class)
                         )
-
+        print("check num of classes inside regnet init: ", n_class)
+        print("check regress dim: ", self.regress_dim)
         self.mask = P.MaskOut(n_class)
 
     def forward(self, x:torch.Tensor, label:int) -> torch.Tensor:
@@ -113,19 +114,24 @@ class Regress2DNet(nn.Module):
             return rot
         
         elif self.output == "adjugate":
-            adj_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            x = self.hidden_mlp(x)
+            adj_vec = self.mask(x.view(batch, self.n_class, self.regress_dim), label)
             return adj_vec
         
         elif self.output == "svd":
-            svd_vec = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            x = self.hidden_mlp(x)
+            print("check the shape after hidden mlp: ", x.shape)
+            svd_vec = self.mask(x.view(batch, self.n_class, self.regress_dim), label)
             return svd_vec
         
         elif self.output == "a-matrix":
-            ten_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            x = self.hidden_mlp(x)
+            ten_d = self.mask(x.view(batch, self.n_class, self.regress_dim), label)
             return ten_d
         
         elif self.output == "six-d":
-            six_d = self.mask(self.hidden_mlp(x).view(batch, self.n_class, self.regress_dim), label)
+            x = self.hidden_mlp(x)
+            six_d = self.mask(x.view(batch, self.n_class, self.regress_dim), label)
             return six_d
 
 class MobileNet(nn.Module):
