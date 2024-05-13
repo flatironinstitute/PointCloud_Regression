@@ -76,6 +76,7 @@ class Regress2DNet(nn.Module):
         if output_option == "s1":
             self.regress_dim = 2
         elif output_option == "adjugate" or "a-matrix":
+            print("check the option select adj or amat branch")
             self.regress_dim = 10
         elif output_option == "svd":
             print("check the option select svd branch")
@@ -96,6 +97,7 @@ class Regress2DNet(nn.Module):
                         )
         print("check num of classes inside regnet init: ", n_class)
         print("check regress dim: ", self.regress_dim)
+        print("check output option: ", output_option)
         self.mask = P.MaskOut(n_class)
 
     def forward(self, x:torch.Tensor, label:int) -> torch.Tensor:
