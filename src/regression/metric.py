@@ -84,9 +84,29 @@ class SixDLoss(LossFn):
             cls.instance = super(SixDLoss, cls).__new__(cls)
         return cls.instance
 
+class SVDLoss(LossFn):
+    def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor) -> torch.Tensor:
+        """@brief: we calculated the Frobenius norm as the loss
+        between coverted rot mat from prediction and the g.t. mat
+        @args
+        predict: 9-dim vector to be converted
+        """
+        rot_mat = A.symmetric_orthogonalization(predict)
+        quat_rot = A.quat_to_rotmat(q_target)
+
+        loss = frobenius_norm_loss(rot_mat, quat_rot)
+        q_pred = A.rotmat_to_quat(rot_mat)
+        return loss, q_pred
+
+    # Singleton pattern
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(SVDLoss, cls).__new__(cls)
+        return cls.instance
+
 class RMSDLoss(LossFn):
     """
-    rmsd loss's input should be a 10 dim vector as adjugate quaternions
+    rmsd loss's input should be a 10 dim vector as an adjugate quaternions
     """
     def compute_loss(self, predict: torch.Tensor, q_target: torch.Tensor,
                     concate_cloud: torch.Tensor, trace_norm: bool=False) -> torch.Tensor: 

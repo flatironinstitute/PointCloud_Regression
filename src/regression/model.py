@@ -17,6 +17,8 @@ class PointNet(nn.Module):
             self.out_dim = 6 
         elif adj_option == "chordal" or adj_option == "l2chordal":
             self.out_dim = 4
+        elif adj_option == "svd":
+            self.out_dim = 9
             
         self.feat_net = PointFeatCNN(hidden_size, batch_norm) #feature net directly output dim of hidden layer
         self.hidden_mlp = nn.Sequential(

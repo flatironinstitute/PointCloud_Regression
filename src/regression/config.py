@@ -14,11 +14,11 @@ class TrainingDataConfig:
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
-    svd_mod: bool = False #use qrmsd or qinit
+    svd_mod: bool = False # use qrmsd or qinit as the g.t.
     # options for model net
     category: List[str] = dataclasses.field(default_factory=lambda:["airplane"])
     sigma: float = 0.01
-    num_points: int = 1000 #downsampled size for the modelnet mesh
+    num_points: int = 1000 # downsampled size for the modelnet mesh
     num_rot: int = 1000
     model_net: bool = False
     range_max: int = 35000
@@ -38,12 +38,13 @@ class NetworkConfig:
     num_points: int = 100
     num_layer: int = 3
     hidden_size: int = 1024
-    adj_option: str = 'adjugate' #by default, also can be 'a-matrix/chordal/six-d/rmsd'
+    adj_option: str = 'adjugate' # by default, also can be 'a-matrix/chordal/six-d/svd/rmsd'
     batch_norm: bool = False
 
 @dataclasses.dataclass
 class LossConfig:
-    rmsd_trace: bool = False
+    # special option to make loss as the euclidean dist between two cloud
+    rmsd_trace: bool = False 
 
 @dataclasses.dataclass
 class PointNetTrainConfig:

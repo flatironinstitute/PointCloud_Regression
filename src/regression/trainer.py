@@ -70,6 +70,10 @@ class PointNetTrainer(pl.LightningModule):
             angle_diff = M.quat_angle_diff(pred, quat)
             angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('train/chordal L2 norm', loss)
+        elif net_option == "svd":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
+            self.log('train/Frobenius norm after svd', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             angle_cos = M.quat_cosine_diff(pred, quat)
@@ -82,13 +86,14 @@ class PointNetTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx: int):
         cloud, quat = batch
         pred = self(cloud)
-        #loss can also wrap up separately for different options
+        # loss can also wrap up separately for different options
         network_option = self.cf.model_config.adj_option
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
         
         if network_option == "adjugate":
             loss, pred_quat = loss_computer.compute_loss(pred, quat, self.cf)
+        # this option will make loss as the euclidean dist between two cloud, without supervise the pose itself
         elif network_option == "rmsd":
             loss, pred_quat = loss_computer.compute_loss(pred, quat, cloud, 
                                             self.cf.loss_config.rmsd_trace)
@@ -128,6 +133,10 @@ class PointNetTrainer(pl.LightningModule):
             angle_diff = M.quat_angle_diff(pred, quat)
             angle_cos = M.quat_cosine_diff(pred, quat)
             self.log('val/chordal L2 norm', loss)
+        elif net_option == "svd":
+            angle_diff = M.quat_angle_diff(pred, quat)
+            angle_cos = M.quat_cosine_diff(pred, quat)
+            self.log('val/Frobenius norm after svd', loss)
         else:
             angle_diff = M.quat_angle_diff(pred, quat)
             angle_cos = M.quat_cosine_diff(pred, quat)
