@@ -30,6 +30,7 @@ class RegNetTrainer(pl.LightningModule):
 
         self.save_hyperparameters(config)
 
+        # we update the num of class adaptively when handle different num of categories
         config.network.n_class = len(config.data.category)
         self.category2idx = dict(zip(config.data.category, range(len(config.data.category))))
 
