@@ -18,11 +18,11 @@ def read_check_point(path: str):
     return model
 
 def forward_loaded_model(loaded_model, cloud: torch.Tensor,net_option:str) -> torch.Tensor:
-    #cloud data are load and convert from numpy load
+    # cloud data are load and convert from numpy load
     print("shape of tensor: ", cloud.shape)
     b, _, _, _ = cloud.shape
 
-    curr_pred = loaded_model(cloud) #no flatten needed, as feat net will do the downsampling
+    curr_pred = loaded_model(cloud) # no flatten needed, as feat net will do the downsampling
     if net_option == "adjugate":
         print("predicted adjugate vec has shape: ", curr_pred.shape)
         pred_adj = A.vec_to_adj(curr_pred)

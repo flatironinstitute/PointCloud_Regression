@@ -108,6 +108,8 @@ def vec_to_quat(vec: torch.Tensor) -> torch.Tensor:
     adj = vec_to_adj(vec)
     eigenvalues, eigenvectors = torch.linalg.eigh(adj, UPLO='U')
     
+    # extract the eigenvector corresponding to the minimal eigenvalue 
+    # by following Peretroukhin
     first_eigenvectors = eigenvectors[:, :, 0]
 
     return first_eigenvectors
