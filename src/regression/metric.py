@@ -10,7 +10,7 @@ import regression.penalties as P
 
 ### Factory Pattern of the loss functions ###
 class Loss(Enum):
-    frobenius, chordal_quat, chordal_amat, six_d, rmsd = 1, 2, 3, 4, 5
+    frobenius, chordal_quat, chordal_amat, six_d, svd, rmsd = 1, 2, 3, 4, 5, 6
 
 class LossFn(ABC):
     @abstractmethod   
@@ -134,6 +134,7 @@ class LossFactory:
             'chordal': ChordalLoss(),
             'l2chordal': ChordalL2Loss(),
             'six-d': SixDLoss(),
+            'svd': SVDLoss(),
             'rmsd': RMSDLoss()
         }
         return switcher.get(loss_name)

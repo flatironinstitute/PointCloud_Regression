@@ -150,6 +150,8 @@ class PointNetTrainer(pl.LightningModule):
         cloud, quat = batch
         pred = self(cloud)
 
+        print("check dim of prediction for svd: ", pred.shape)
+
         network_option = self.cf.model_config.adj_option
         loss_create = M.LossFactory()
         loss_computer = loss_create.create(network_option)
