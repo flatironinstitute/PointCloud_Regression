@@ -75,7 +75,7 @@ class Regress2DNet(nn.Module):
         self.regress_dim = 2
         if output_option == "s1":
             self.regress_dim = 2
-        elif output_option == "adjugate" or "a-matrix":
+        elif output_option == "adjugate" or output_option == "a-matrix":
             print("check the option select adj or amat branch")
             self.regress_dim = 10
         elif output_option == "svd":
