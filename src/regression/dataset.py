@@ -97,9 +97,10 @@ class Pascal3DDataset(Dataset):
         """
         super().__init__()
         self.category = category # we must provide a (list of) category
-        self.num_sample = num_sample
         self.resize_shape = resize
         self.base_path = base_path
+
+        self.num_sample = num_sample
 
         self.all_annos = []
         self.all_image = []

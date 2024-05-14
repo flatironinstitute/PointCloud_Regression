@@ -39,7 +39,6 @@ def main(config: cf.TestConfig):
     dm = TestDataModule(data_config, config.batch_size)
     model = tr.MLPTrainer.load_from_checkpoint(load_path)
 
-    trainer.test(model,dm)
 
 if __name__ == '__main__':
     from hydra.core.config_store import ConfigStore

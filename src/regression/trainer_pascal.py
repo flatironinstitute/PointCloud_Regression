@@ -19,6 +19,8 @@ from regression.dataset import Pascal3DDataset
 
 from torch.utils.data.dataloader import default_collate
 
+from typing import Dict
+
 
 class RegNetTrainer(pl.LightningModule):
     hparams: cf.RegNetTrainingConfig
@@ -146,6 +148,48 @@ class RegNetTrainer(pl.LightningModule):
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.regnet.parameters(), lr=self.hparams.optim.learning_rate)
         return optim
+    
+    def predict_step(self, batch, batch_idx:int, dataloader_idx=0, **kwargs) -> Dict[str,torch.Tensor]:
+        option_ = kwargs.get('option')
+
+        images, annos, categories = batch
+        category_indices = torch.tensor([self.category2idx[cat] for cat in categories], device=self.device)
+        pred = self(images, category_indices)
+
+        # Extract a, e, t from a batch of dictionaries
+        anno_a = torch.tensor([anno['a'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_e = torch.tensor([anno['e'] for anno in annos], dtype=torch.float32, device=self.device)
+        anno_t = torch.tensor([anno['t'] for anno in annos], dtype=torch.float32, device=self.device)
+
+        anno_euler = A.batch_euler_to_rot(anno_a, anno_e, anno_t)
+
+        if option_ == "adjugate":
+            adj = A.vec_to_adj(pred) # batch conversion
+            euler_quat = A.rotmat_to_quat(anno_euler)
+            quat_adj = A.batch_quat_to_adj(euler_quat)
+            loss =  M.frobenius_norm_loss(adj, quat_adj)
+
+            rot = A.batch_vec_to_rot(pred)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+        
+        elif option_ == "svd":
+            rot = A.symmetric_orthogonalization(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif option_ == "a-matrix":
+            quat = A.batch_vec_to_quat(pred)
+            rot = A.quat_to_rotmat(quat)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        elif option_ == "six-d":
+            rot = A.sixdim_to_rotmat(pred)
+            loss = M.frobenius_norm_loss(rot, anno_euler)
+            geodesic = M.geodesic_batch_mean(rot, anno_euler)
+
+        return {"loss": loss, "geodesic": geodesic}
+
     
 class RegNetDataModule(pl.LightningDataModule):
     def __init__(self, config: cf.PascalDataConfig, batch_size: int) -> None:
