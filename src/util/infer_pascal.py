@@ -61,7 +61,7 @@ def main(config: cf.PascalInferConfig):
     
 
     dm = PascalInferDataModule(config)
-    model = read_check_point(config.file_path)
+    model = read_check_point(config.chk_path)
 
     results = trainer.predict(model, dm, option_=config.option)
     save_results(results, config.output_path)

@@ -5,6 +5,7 @@ import omegaconf
 @dataclasses
 class PascalInferConfig:
     file_path: str = omegaconf.MISSING 
+    chk_path: str = omegaconf.MISSING
     output_path: str = omegaconf.MISSING 
     crop: int = 224
     option: str = "adjugate" # by default
