@@ -63,8 +63,10 @@ def main(config: cf.PascalInferConfig):
     dm = PascalInferDataModule(config)
     model = read_check_point(config.chk_path)
 
+    output_file = config.option + " " + str(len(config.category))
+
     results = trainer.predict(model, dm, option_=config.option)
-    save_results(results, config.output_path)
+    save_results(results, config.output_path + output_file)
 
 if __name__ == '__main__':
     from hydra.core.config_store import ConfigStore
