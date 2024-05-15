@@ -2,7 +2,7 @@ import dataclasses
 from typing import Optional, Tuple, List, Type
 import omegaconf
 
-@dataclasses
+@dataclasses.dataclass
 class PascalInferConfig:
     file_path: str = omegaconf.MISSING 
     chk_path: str = omegaconf.MISSING
