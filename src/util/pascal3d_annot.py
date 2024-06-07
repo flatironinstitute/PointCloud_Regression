@@ -195,6 +195,22 @@ def compose_euler_dict(anno:Dict[str,Any]) -> Dict[str, Any]:
     
     return curr_dict
 
+def category_folderid(category:str) -> str:
+    folder_map = {'aeroplane': '02691156',
+                  'bicycle': '02834778',
+                  'boat': '02858304',
+                  'bottle': '02876657',
+                  'bus': '02924116',
+                  'car': '02958343',
+                  'chair': '03001627',
+                  'diningtable': '04379243',
+                  'motorbike': '03790512',
+                  'sofa': '04256520',
+                  'train': '04468005',
+                  'tvmonitor': '03211117'}
+    return folder_map[category]
+    
+
 
 
         

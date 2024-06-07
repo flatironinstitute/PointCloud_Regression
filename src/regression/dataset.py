@@ -90,7 +90,7 @@ class ModelNetDataset(Dataset):
 
 
 class Pascal3DDataset(Dataset):
-    def __init__(self, category:List[str], num_sample:int, base_path:str, resize:int) -> None:
+    def __init__(self, category:List[str], num_sample:int, base_path:str, syn_path:str, resize:int) -> None:
         """@args: base_path should be the top dir of Pascal data
         i.e. on rusty cluster it should be: 
         /mnt/home/clin/ceph/dataset/pascal_3d/PASCAL3D+_release1.0/
@@ -99,21 +99,33 @@ class Pascal3DDataset(Dataset):
         self.category = category # we must provide a (list of) category
         self.resize_shape = resize
         self.base_path = base_path
+        self.syn_path = syn_path
 
         self.num_sample = num_sample
 
         self.all_annos = []
-        self.all_image = []
+        self.all_pascal = []
         for c in self.category:
             curr_anno_path = base_path + "Annotations/" + c + "_pascal/"
             curr_image_path = base_path + "Images/" + c + "_pascal/"
             self.all_annos += F.list_files_in_dir(curr_anno_path)
-            self.all_image += F.list_files_in_dir(curr_image_path)
+            self.all_pascal += F.list_files_in_dir(curr_image_path)
+
+        self.all_syn = []
+        for c in self.category:
+            curr_folder = P.category_folderid(c)
+            curr_subdirs = F.list_subdir_in_dir(curr_folder)
+
+            for sub in curr_subdirs:
+                curr_files = F.list_files_in_dir(sub)
+                self.all_syn += curr_files
 
     def __len__(self):
         return len(self.all_annos)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
+        # subfolder name contains info of catgory, i.e.
+        # "Images/aeroplane_pascal/2009_004203.jpg"
         # random_pick = np.random.randint(len(self.all_annos))
         curr_file = self.all_annos[index]
         curr_id = curr_file[-15:-4] # slice the id from the abs path
@@ -134,19 +146,6 @@ class Pascal3DDataset(Dataset):
         return data_list
 
     
-class KittiOdometryDataset(Dataset):
-    """
-    Dataset to load kitti' velodyne lidar data of odometry
-    """
-    def __init__(self, base_path:str, seq_num:int) -> None:
-        super().__init__()
-        self.velo_path = F.get_all_bins(base_path + seq_num)
-
-    def __len__(self):
-        return len(self.velo_path)
-
-    def __getitem__(self, index: int):
-        return F.get_velo(self.velo_path[index])
 
 
 

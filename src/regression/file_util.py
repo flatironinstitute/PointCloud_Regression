@@ -3,8 +3,18 @@ import numpy as np
 from typing import List
 import glob
 
-###read all files from a dir###
-def list_files_in_dir(top_dir: str) -> list:
+### read all files from a dir###
+def list_subdir_in_dir(top_dir: str) -> List[str]:
+    current_directory = os.getcwd()
+
+    # List all entries in the directory
+    entries = os.listdir(current_directory)
+
+    # Filter out the entries to only include directories
+    subdirectories = [entry for entry in entries if os.path.isdir(os.path.join(current_directory, entry))]
+    return subdirectories
+
+def list_files_in_dir(top_dir: str) -> List[str]:
     """ method that lists all files of a given directory
     :param 
         top_dir: directory in which the files are searched in
