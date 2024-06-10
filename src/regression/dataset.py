@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Tuple, Union, Dict
 from torch.utils.data import Dataset, DataLoader, sampler
+import cv2 as cv
 import os
 import glob
 import torch
@@ -113,7 +114,7 @@ class Pascal3DDataset(Dataset):
 
         self.all_syn = []
         for c in self.category:
-            curr_folder = P.category_folderid(c)
+            curr_folder = self.syn_path + P.category_folderid(c)
             curr_subdirs = F.list_subdir_in_dir(curr_folder)
 
             for sub in curr_subdirs:
@@ -124,24 +125,40 @@ class Pascal3DDataset(Dataset):
         return len(self.all_annos)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
-        # subfolder name contains info of catgory, i.e.
+        # subfolder's path contains info of Pascal's category, i.e.
         # "Images/aeroplane_pascal/2009_004203.jpg"
+        # also for Sythetic ImageNet data, i.e.
+        # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
-        curr_file = self.all_annos[index]
-        curr_id = curr_file[-15:-4] # slice the id from the abs path
-        curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
+        if index < len(self.all_pascal):
+            curr_file = self.all_annos[index]
+            curr_id = curr_file[-15:-4] # slice the id from the abs path
+            curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
 
-        curr_annos = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
+            curr_annos = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
 
-        data_list = []
-        for anno in curr_annos:
-            img_loader = P.RoILoaderPascal(self.category, curr_id,
-                                           self.resize_shape, anno, 
-                                           self.base_path+"Images"+curr_category) 
-            curr_img = img_loader()
+            data_list = []
+            for anno in curr_annos:
+                img_loader = P.RoILoaderPascal(self.category, curr_id,
+                                               self.resize_shape, anno, 
+                                               self.base_path+"Images"+curr_category) 
+                curr_img = img_loader()
 
-            curr_dict = P.compose_euler_dict(anno)
-            data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
+                curr_dict = P.compose_euler_dict(anno)
+                data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
+
+            else: 
+                syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
+                image_path = self.all_syn[syn_idx]
+                curr_category = P.folderid_category[image_path[96:104]]
+                curr_dict = P.compose_syn_image_dict(image_path, curr_category)
+
+                image_loader = P.RoILoader()
+                curr_image = cv.imread(image_path)
+
+                trans_image = image_loader.transform(curr_image)
+
+                data_list = [(torch.as_tensor(trans_image, dtype=torch.float32), curr_dict)]
 
         return data_list
 

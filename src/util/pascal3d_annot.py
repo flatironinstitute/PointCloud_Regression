@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.io
 import cv2 as cv
+import re
 import torch
 import torch.nn as nn
 import logging
@@ -195,6 +196,21 @@ def compose_euler_dict(anno:Dict[str,Any]) -> Dict[str, Any]:
     
     return curr_dict
 
+def compose_syn_image_dict(image_path:str, category:str) -> Dict[str, Any]:
+    angles = re.findall(r'_a(\d+)_e([-]?\d+)_t([-]?\d+)', image_path)
+
+    azim = float(angles[0][0])
+    elev = float(angles[0][1])
+    thet = float(angles[0][2])
+
+    curr_dict = {"category": category,
+                 "a":A.deg_to_rad(torch.tensor(azim)),
+                 "e":A.deg_to_rad(torch.tensor(elev)),
+                 "t":A.deg_to_rad(torch.tensor(thet))}
+
+    return curr_dict
+
+    
 def category_folderid(category:str) -> str:
     folder_map = {'aeroplane': '02691156',
                   'bicycle': '02834778',
@@ -209,6 +225,22 @@ def category_folderid(category:str) -> str:
                   'train': '04468005',
                   'tvmonitor': '03211117'}
     return folder_map[category]
+
+def folderid_category(folder:str) -> str:
+    folder_map = {'aeroplane': '02691156',
+                  'bicycle': '02834778',
+                  'boat': '02858304',
+                  'bottle': '02876657',
+                  'bus': '02924116',
+                  'car': '02958343',
+                  'chair': '03001627',
+                  'diningtable': '04379243',
+                  'motorbike': '03790512',
+                  'sofa': '04256520',
+                  'train': '04468005',
+                  'tvmonitor': '03211117'}
+    category_map = {value: key for key, value in folder_map.items()}
+    return category_map[folder]
     
 
 
