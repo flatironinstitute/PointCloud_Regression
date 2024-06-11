@@ -15,7 +15,7 @@ import util.pascal3d_annot as P
 
 from scipy.spatial.transform import Rotation as R
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
