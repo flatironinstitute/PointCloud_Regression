@@ -70,6 +70,7 @@ class PascalDataConfig:
     train_prop(float): percentage for training
     """
     file_path: str = omegaconf.MISSING 
+    syn_path:str = omegaconf.MISSING
     num_sample: int = 5000
     crop: int = 224
     train_prop: float = 0.9
