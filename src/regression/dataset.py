@@ -122,7 +122,7 @@ class Pascal3DDataset(Dataset):
                 self.all_syn += curr_files
 
     def __len__(self):
-        return len(self.all_annos)
+        return len(self.all_annos) + len(self.all_syn)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         # subfolder's path contains info of Pascal's category, i.e.
