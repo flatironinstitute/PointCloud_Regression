@@ -150,7 +150,14 @@ class Pascal3DDataset(Dataset):
             else: 
                 syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
                 image_path = self.all_syn[syn_idx]
-                curr_category = P.folderid_category[image_path[96:104]]
+
+                folder_path = os.path.dirname(image_path)  # gets the directory path
+
+                # If you need the category folder specifically
+                category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
+                category_folder_name = os.path.basename(category_folder_path)
+                curr_category = P.folderid_category[category_folder_name]
+
                 curr_dict = P.compose_syn_image_dict(image_path, curr_category)
 
                 image_loader = P.RoILoader()
