@@ -130,7 +130,13 @@ class Pascal3DDataset(Dataset):
         # also for Sythetic ImageNet data, i.e.
         # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
+        print("Number of Pascal images:", len(self.all_pascal))
+        print("Number of Synthetic images:", len(self.all_syn))
+
+        print(f"Requested index: {index}")
+
         if index < len(self.all_pascal):
+            print(f"Handling Pascal data at index: {index}")
             curr_file = self.all_annos[index]
             curr_id = curr_file[-15:-4] # slice the id from the abs path
             curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
@@ -149,6 +155,8 @@ class Pascal3DDataset(Dataset):
 
             else: 
                 syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
+                print(f"Handling Synthetic data at synthetic-specific index: {syn_idx}")
+
                 image_path = self.all_syn[syn_idx]
 
                 folder_path = os.path.dirname(image_path)  # gets the directory path
