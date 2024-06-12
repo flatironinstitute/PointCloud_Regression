@@ -15,6 +15,9 @@ import util.pascal3d_annot as P
 
 from scipy.spatial.transform import Rotation as R
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 class SimulatedDataset(Dataset):
     """
@@ -133,6 +136,9 @@ class Pascal3DDataset(Dataset):
         # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
         total_len = len(self.all_pascal) + len(self.all_syn)
+        logger.debug(f"total length of both is: {total_len}")
+        logger.debug(f"length of all pascal is: {len(self.all_pascal)}")
+        logger.debug(f"length of all synthetic is: {len(self.all_syn)}")
         if not 0 <= index < total_len:
             raise IndexError(f"Requested index {index} is out ogf range in total")
         if index < len(self.all_pascal):
@@ -153,6 +159,7 @@ class Pascal3DDataset(Dataset):
                 data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
 
             else: 
+                logger.debug(f"current index is: {index}")
                 syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
                 if not 0 <= syn_idx < len(self.all_syn):
                     raise IndexError(f"Synthetic data index {syn_idx} is out of range")
