@@ -15,9 +15,6 @@ import util.pascal3d_annot as P
 
 from scipy.spatial.transform import Rotation as R
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 
 class SimulatedDataset(Dataset):
     """
@@ -127,7 +124,7 @@ class Pascal3DDataset(Dataset):
                 self.all_syn += curr_files
 
     def __len__(self):
-        return len(self.all_annos) + len(self.all_syn)
+        return len(self.all_pascal) + len(self.all_syn)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         # subfolder's path contains info of Pascal's category, i.e.
@@ -135,13 +132,10 @@ class Pascal3DDataset(Dataset):
         # also for Sythetic ImageNet data, i.e.
         # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
-        logger.info("Number of Pascal images:", len(self.all_pascal))
-        logger.info("Number of Synthetic images:", len(self.all_syn))
-
-        logger.info(f"Requested index: {index}")
-
+        total_len = len(self.all_pascal) + len(self.all_syn)
+        if not 0 <= index < total_len:
+            raise IndexError(f"Requested index {index} is out ogf range in total")
         if index < len(self.all_pascal):
-            logger.info(f"Handling Pascal data at index: {index}")
             curr_file = self.all_annos[index]
             curr_id = curr_file[-15:-4] # slice the id from the abs path
             curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
@@ -160,8 +154,8 @@ class Pascal3DDataset(Dataset):
 
             else: 
                 syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
-                logger.info(f"Handling Synthetic data at synthetic-specific index: {syn_idx}")
-
+                if not 0 <= syn_idx < len(self.all_syn):
+                    raise IndexError(f"Synthetic data index {syn_idx} is out of range")
                 image_path = self.all_syn[syn_idx]
 
                 folder_path = os.path.dirname(image_path)  # gets the directory path
