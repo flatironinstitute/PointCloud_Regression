@@ -162,7 +162,7 @@ class Pascal3DDataset(Dataset):
                 logger.debug(f"current index is: {index}")
                 syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
                 if not 0 <= syn_idx < len(self.all_syn):
-                    raise IndexError(f"Synthetic data index {syn_idx} is out of range")
+                    raise IndexError(f"Synthetic data index {syn_idx} is out of range, total length is {total_len}, and pascal/sythetic length is {len(self.all_pascal)}, {len(self.syn_path)}")
                 image_path = self.all_syn[syn_idx]
 
                 folder_path = os.path.dirname(image_path)  # gets the directory path
