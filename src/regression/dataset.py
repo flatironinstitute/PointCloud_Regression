@@ -15,10 +15,6 @@ import util.pascal3d_annot as P
 
 from scipy.spatial.transform import Rotation as R
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-
 class SimulatedDataset(Dataset):
     """
     Dataset to load simulated data which generated from random
@@ -135,6 +131,8 @@ class Pascal3DDataset(Dataset):
         # also for Sythetic ImageNet data, i.e.
         # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
+        logger = logging.getLogger(__name__)
+
         total_len = len(self.all_pascal) + len(self.all_syn)
         logger.debug(f"total length of both is: {total_len}")
         logger.debug(f"length of all pascal is: {len(self.all_pascal)}")
