@@ -16,3 +16,9 @@ class PascalInferConfig:
     log_every: int = 1
     # options for pascal3D+
     category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
+
+@dataclasses.dataclass
+class PascalFileCounterConfig:
+    pascal_path: str = omegaconf.MISSING
+    syn_path: str = omegaconf.MISSING
+    category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
