@@ -25,7 +25,7 @@ def count_synthetic(base_path:str, category:List[str]) -> Dict[str,int]:
     counter_dict = {}
 
     for c in category:
-        curr_folder = base_path + P.category_folderid(c)
+        curr_folder = base_path + P.category_folderid(c) + "/"
         print(curr_folder)
         curr_subdirs = F.list_subdir_in_dir(curr_folder)
 
