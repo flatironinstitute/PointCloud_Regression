@@ -31,13 +31,13 @@ def count_synthetic(base_path:str, category:List[str]) -> Dict[str,int]:
 
         print(f"check top directory of sythetic data of {c} \n")
 
-        for i in range(len(curr_subdirs)):
+        for i in range(5):
             print(curr_subdirs[i])
 
         curr_count = 0
         for sub in curr_subdirs:
             print(f"check sub directory of sythetic data of {sub} \n")
-            for i in range(len(sub)):
+            for i in range(5):
                 print(sub[i])
             curr_files = F.list_files_in_dir(sub)
             curr_count += len(curr_files)
