@@ -9,7 +9,9 @@ def list_subdir_in_dir(directory:str) -> List[str]:
     subdirs = []
     for entry in os.scandir(directory):
         if entry.is_dir():
-            subdirs.append(entry.name)
+            abs_path = os.path.join(directory, entry.name)
+            subdirs.append(abs_path)
+
     return subdirs
 
 
