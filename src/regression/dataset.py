@@ -170,7 +170,7 @@ class Pascal3DDataset(Dataset):
             # If you need the category folder specifically
             category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
             category_folder_name = os.path.basename(category_folder_path)
-            curr_category = P.folderid_category[category_folder_name]
+            curr_category = P.folderid_category(category_folder_name)
 
             curr_dict = P.compose_syn_image_dict(image_path, curr_category)
 
