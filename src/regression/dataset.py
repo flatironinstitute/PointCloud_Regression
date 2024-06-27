@@ -139,6 +139,9 @@ class Pascal3DDataset(Dataset):
         logger.debug(f"length of all synthetic is: {len(self.all_syn)}")
         if not 0 <= index < total_len:
             raise IndexError(f"Requested index {index} is out ogf range in total")
+
+        data_list = []
+
         if index < len(self.all_pascal):
             curr_file = self.all_annos[index]
             curr_id = curr_file[-15:-4] # slice the id from the abs path
@@ -146,7 +149,6 @@ class Pascal3DDataset(Dataset):
 
             curr_annos = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
 
-            data_list = []
             for anno in curr_annos:
                 img_loader = P.RoILoaderPascal(self.category, curr_id,
                                                self.resize_shape, anno, 
@@ -156,28 +158,28 @@ class Pascal3DDataset(Dataset):
                 curr_dict = P.compose_euler_dict(anno)
                 data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
 
-            else: 
-                logger.debug(f"current index is: {index}")
-                syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
-                if not 0 <= syn_idx < len(self.all_syn):
-                    raise IndexError(f"Synthetic data index {syn_idx} is out of range, total length is {total_len}, and pascal/sythetic length is {len(self.all_pascal)}, {len(self.syn_path)}")
-                image_path = self.all_syn[syn_idx]
+        else: 
+            logger.debug(f"current index is: {index}")
+            syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
+            if not 0 <= syn_idx < len(self.all_syn):
+                raise IndexError(f"Synthetic data index {syn_idx} is out of range, total length is {total_len}, and pascal/sythetic length is {len(self.all_pascal)}, {len(self.syn_path)}")
+            image_path = self.all_syn[syn_idx]
 
-                folder_path = os.path.dirname(image_path)  # gets the directory path
+            folder_path = os.path.dirname(image_path)  # gets the directory path
 
-                # If you need the category folder specifically
-                category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
-                category_folder_name = os.path.basename(category_folder_path)
-                curr_category = P.folderid_category[category_folder_name]
+            # If you need the category folder specifically
+            category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
+            category_folder_name = os.path.basename(category_folder_path)
+            curr_category = P.folderid_category[category_folder_name]
 
-                curr_dict = P.compose_syn_image_dict(image_path, curr_category)
+            curr_dict = P.compose_syn_image_dict(image_path, curr_category)
 
-                image_loader = P.RoILoader()
-                curr_image = cv.imread(image_path)
+            image_loader = P.RoILoader()
+            curr_image = cv.imread(image_path)
 
-                trans_image = image_loader.transform(curr_image)
+            trans_image = image_loader.transform(curr_image)
 
-                data_list = [(torch.as_tensor(trans_image, dtype=torch.float32), curr_dict)]
+            data_list.append((torch.as_tensor(trans_image, dtype=torch.float32), curr_dict))
 
         return data_list
 
