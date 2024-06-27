@@ -174,7 +174,7 @@ class Pascal3DDataset(Dataset):
 
             curr_dict = P.compose_syn_image_dict(image_path, curr_category)
 
-            image_loader = P.RoILoader()
+            image_loader = P.RoILoader(self.resize_shape)
             curr_image = cv.imread(image_path)
 
             trans_image = image_loader.transform(curr_image)
