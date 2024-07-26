@@ -198,7 +198,9 @@ class RegNetDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
 
         self.ds = Pascal3DDataset(self.config.category, self.config.num_sample,
-                                  self.config.file_path, self.config.syn_path, self.config.crop)
+                                  self.config.pascal_path, self.config.syn_path,
+                                  self.config.imagenet_path, self.config.crop,
+                                  self.config.sample_weights)
         
         self.ds_train = None
         self.ds_val = None

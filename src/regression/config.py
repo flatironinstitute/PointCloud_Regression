@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional, Tuple, List, Type
+from typing import Optional, Tuple, List, Type, Dict
 import omegaconf
 
 @dataclasses.dataclass
@@ -69,15 +69,22 @@ class PascalDataConfig:
     file_path(str): path of the Pascal3D's images and annotations
     train_prop(float): percentage for training
     """
-    file_path: str = omegaconf.MISSING 
+    pascal_path: str = omegaconf.MISSING 
+    imagenet_path: str = omegaconf.MISSING
     syn_path:str = omegaconf.MISSING
-    num_sample: int = 5000
+    num_sample: int = 400000
     crop: int = 224
     train_prop: float = 0.9
     limit: Optional[int] = None
     num_data_workers: int = 16
     # options for pascal3D+
     category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
+    sample_weights: Dict[str,float] = dataclasses.field(default_factory=lambda: 
+    {
+        'pascal': 1.0,
+        'imagenet': 0.5,
+        'synthetic': 0.2
+    })
     
 @dataclasses.dataclass
 class RegNetConfig:

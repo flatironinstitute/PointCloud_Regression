@@ -92,7 +92,9 @@ class ModelNetDataset(Dataset):
 
 
 class Pascal3DDataset(Dataset):
-    def __init__(self, category:List[str], num_sample:int, base_path:str, syn_path:str, resize:int) -> None:
+    def __init__(self, category:List[str], num_sample:int, pascal_path:str, syn_path:str, 
+                 imagenet_path:str, resize:int,
+                 sampling_weights:Dict[str,float]) -> None:
         """@args: base_path should be the top dir of Pascal data
         i.e. on rusty cluster it should be: 
         /mnt/home/clin/ceph/dataset/pascal_3d/PASCAL3D+_release1.0/
@@ -100,18 +102,27 @@ class Pascal3DDataset(Dataset):
         super().__init__()
         self.category = category # we must provide a (list of) category
         self.resize_shape = resize
-        self.base_path = base_path
+        self.pascal_path = pascal_path
+        self.imagenet_path = imagenet_path
         self.syn_path = syn_path
 
         self.num_sample = num_sample
 
-        self.all_annos = []
+        self.pascal_annos = []
         self.all_pascal = []
         for c in self.category:
-            curr_anno_path = base_path + "Annotations/" + c + "_pascal/"
-            curr_image_path = base_path + "Images/" + c + "_pascal/"
-            self.all_annos += F.list_files_in_dir(curr_anno_path)
+            curr_anno_path = pascal_path + "Annotations/" + c + "_pascal/"
+            curr_image_path = pascal_path + "Images/" + c + "_pascal/"
+            self.pascal_annos += F.list_files_in_dir(curr_anno_path)
             self.all_pascal += F.list_files_in_dir(curr_image_path)
+
+        self.imagenet_annos = []
+        self.all_imagenet = []
+        for c in self.category:
+            curr_anno_path = imagenet_path + "Annotations/" + c + "_imagenet/"
+            curr_image_path = imagenet_path + "Images/" + c + "_imagenet/"
+            self.imagenet_annos += F.list_files_in_dir(curr_anno_path)
+            self.all_imagenet += F.list_files_in_dir(curr_image_path)
 
         self.all_syn = []
         for c in self.category:
@@ -122,8 +133,13 @@ class Pascal3DDataset(Dataset):
                 curr_files = F.list_files_in_dir(sub)
                 self.all_syn += curr_files
 
+        # Apply sampling ratios to limit the number of examples used
+        self.sampled_pascal = self.sample_files(self.all_pascal, sampling_weights['pascal'])
+        self.sampled_imagenet = self.sample_files(self.all_imagenet, sampling_weights['imagenet'])
+        self.sampled_synthetic = self.sample_files(self.all_syn, sampling_weights['synthetic'])
+
     def __len__(self):
-        return len(self.all_pascal) + len(self.all_syn)
+        return len(self.sampled_pascal) + len(self.sampled_imagenet) + len(self.sampled_synthetic)
 
     def __getitem__(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         # subfolder's path contains info of Pascal's category, i.e.
@@ -131,57 +147,91 @@ class Pascal3DDataset(Dataset):
         # also for Sythetic ImageNet data, i.e.
         # "../syn_images_cropped_bkg_overlaid/02691156/..", then maps "02691156" to the category
         # random_pick = np.random.randint(len(self.all_annos))
-        logger = logging.getLogger(__name__)
 
-        total_len = len(self.all_pascal) + len(self.all_syn)
-        logger.debug(f"total length of both is: {total_len}")
-        logger.debug(f"length of all pascal is: {len(self.all_pascal)}")
-        logger.debug(f"length of all synthetic is: {len(self.all_syn)}")
+        total_len = len(self.sampled_pascal) + len(self.sampled_imagenet) + len(self.sampled_synthetic)
+
         if not 0 <= index < total_len:
-            raise IndexError(f"Requested index {index} is out ogf range in total")
+            raise IndexError(f"Requested index {index} is out of range in total")
 
+        if index < len(self.sampled_pascal):
+            return self.handle_pascal(index)
+        elif index < len(self.sampled_pascal) + len(self.sampled_imagenet):
+            return self.handle_imagenet(index - len(self.sampled_pascal))
+        else:
+            syn_index = index - (len(self.sampled_pascal) + len(self.sampled_imagenet))
+            return self.handle_synthetic(syn_index)
+        
+    def sample_files(self, file_list:List[str], sampling_ratio:float) -> List[str]:
+        sample_size = int(len(file_list)*sampling_ratio)
+        return np.random.choice(file_list, sample_size, replace=False)
+
+    def handle_pascal(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
         data_list = []
 
-        if index < len(self.all_pascal):
-            curr_file = self.all_annos[index]
-            curr_id = curr_file[-15:-4] # slice the id from the abs path
-            curr_category = curr_file[len(self.base_path)+11:-15] # slice the category from the abs path, 11 is the length of "Annotations"
+        curr_file = self.sampled_pascal[index]
+        file_name = os.path.basename(curr_file)    # This gets '2009_004203.jpg'
 
-            curr_annos = P.read_annotaions(self.base_path+"Annotations"+curr_category + curr_id + ".mat")
+        curr_id = os.path.splitext(file_name)[0]  
+        curr_category = os.path.basename(os.path.dirname(curr_file)) # extract the category from the abs path as "xxx_pascal"
 
-            for anno in curr_annos:
-                img_loader = P.RoILoaderPascal(self.category, curr_id,
-                                               self.resize_shape, anno, 
-                                               self.base_path+"Images"+curr_category) 
-                curr_img = img_loader()
+        curr_annos = P.read_annotaions(self.pascal_path+"Annotations"+curr_category + curr_id + ".mat")
 
-                curr_dict = P.compose_euler_dict(anno)
-                data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
+        for anno in curr_annos:
+            img_loader = P.RoILoaderPascal(self.category, curr_id,
+                                           self.resize_shape, anno, 
+                                           self.pascal_path+"Images"+curr_category) 
+            curr_img = img_loader()
 
-        else: 
-            logger.debug(f"current index is: {index}")
-            syn_idx = index - len(self.all_pascal) # we deduct the length of pascal to make index of syn from 0
-            if not 0 <= syn_idx < len(self.all_syn):
-                raise IndexError(f"Synthetic data index {syn_idx} is out of range, total length is {total_len}, and pascal/sythetic length is {len(self.all_pascal)}, {len(self.syn_path)}")
-            image_path = self.all_syn[syn_idx]
-
-            folder_path = os.path.dirname(image_path)  # gets the directory path
-
-            # If you need the category folder specifically
-            category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
-            category_folder_name = os.path.basename(category_folder_path)
-            curr_category = P.folderid_category(category_folder_name)
-
-            curr_dict = P.compose_syn_image_dict(image_path, curr_category)
-
-            image_loader = P.RoILoader(self.resize_shape)
-            curr_image = cv.imread(image_path)
-
-            trans_image = image_loader.transform(curr_image)
-
-            data_list.append((torch.as_tensor(trans_image, dtype=torch.float32), curr_dict))
+            curr_dict = P.compose_euler_dict(anno)
+            data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
 
         return data_list
+
+    def handle_imagenet(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
+        data_list = []
+
+        curr_file = self.sampled_imagenet[index]
+        file_name = os.path.basename(curr_file)    # This gets '2009_004203.jpg'
+
+        curr_id = os.path.splitext(file_name)[0]  
+        curr_category = os.path.basename(os.path.dirname(curr_file)) # extract the category from the abs path as "xxx_pascal"
+
+        curr_annos = P.read_annotaions(self.imagenet_path+"Annotations"+curr_category + curr_id + ".mat")
+
+        for anno in curr_annos:
+            img_loader = P.RoILoaderPascal(self.category, curr_id,
+                                           self.resize_shape, anno, 
+                                           self.imagenet_path+"Images"+curr_category) 
+            curr_img = img_loader()
+
+            curr_dict = P.compose_euler_dict(anno)
+            data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
+
+        return data_list
+
+    def handle_synthetic(self, index:int) -> List[Tuple[torch.Tensor, Dict[str, Union[torch.Tensor, str]]]]:
+        data_list = []
+        
+        image_path = self.sampled_synthetic[index]
+
+        folder_path = os.path.dirname(image_path)  # gets the directory path
+
+        # If you need the category folder specifically
+        category_folder_path = os.path.dirname(folder_path)  # moves one level up to '02691156'
+        category_folder_name = os.path.basename(category_folder_path)
+        curr_category = P.folderid_category(category_folder_name)
+
+        curr_dict = P.compose_syn_image_dict(image_path, curr_category)
+
+        image_loader = P.RoILoader(self.resize_shape)
+        curr_image = cv.imread(image_path)
+
+        trans_image = image_loader.transform(curr_image)
+
+        data_list.append((torch.as_tensor(trans_image, dtype=torch.float32), curr_dict))
+
+        return data_list
+
 
     
 
