@@ -26,7 +26,6 @@ def read_annotaions(ann_file:str) -> List[Dict[str, Any]]:
     annotations = []
 
     img_file = ann_data['record']['filename'][0][0][0]
-    segmented = ann_data['record']['segmented'][0][0][0]
 
     objects = ann_data['record']['objects'][0][0][0]
 
