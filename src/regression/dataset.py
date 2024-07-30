@@ -174,7 +174,7 @@ class Pascal3DDataset(Dataset):
         curr_id = os.path.splitext(file_name)[0]  
         curr_category = os.path.basename(os.path.dirname(curr_file)) # extract the category from the abs path as "xxx_pascal"
 
-        curr_annos = P.read_annotaions(self.pascal_path+"Annotations"+curr_category + curr_id + ".mat")
+        curr_annos = P.read_annotaions(self.pascal_path+"Annotations/"+curr_category + curr_id + ".mat")
 
         for anno in curr_annos:
             img_loader = P.RoILoaderPascal(self.category, curr_id,
@@ -196,7 +196,7 @@ class Pascal3DDataset(Dataset):
         curr_id = os.path.splitext(file_name)[0]  
         curr_category = os.path.basename(os.path.dirname(curr_file)) # extract the category from the abs path as "xxx_pascal"
 
-        curr_annos = P.read_annotaions(self.imagenet_path+"Annotations"+curr_category + curr_id + ".mat")
+        curr_annos = P.read_annotaions(self.imagenet_path+"Annotations/"+curr_category + curr_id + ".mat")
 
         for anno in curr_annos:
             img_loader = P.RoILoaderPascal(self.category, curr_id,
