@@ -88,12 +88,14 @@ class RoILoader:
         ])
 
 class RoILoaderPascal(RoILoader):
-    """@brief, the class to load and crop the pascal3D+ image
+    """@brief: 
+    the class to load and crop the pascal3D+ & ImageNet image
     with the bbox, the augmentation and preprocess are 
     inherits from the base class
     @args:
     image_path: the base path of the image folder 
     will be specified in the Pascal3DDataset
+    data_option: pascal3d or imagenet
     image_id: the id for image and annotation, should be a string
     for example: 2008_003743
     context_scale: scaling factor of ROI
@@ -102,10 +104,17 @@ class RoILoaderPascal(RoILoader):
     different objects
     """
     def __init__(self, category:str, image_id:str, resize_shape:int,
-                 anno_info:Dict[str,Any], image_path:str, context_pad:int = 16) -> None:
+                 anno_info:Dict[str,Any], image_path:str, data_option:str,
+                 context_pad:int = 16) -> None:
         super().__init__(resize_shape)
         self.anno_info = anno_info
-        self.image_path = image_path + image_id + ".jpg"
+        if data_option == "pascal3d":
+            self.image_path = image_path + image_id + ".jpg"
+        elif data_option == "imagenet":
+            self.image_path = image_path + image_id + ".JPEG"
+        else:
+            raise ValueError(f"Unsupported data option '{data_option}'. Expected 'pascal3d' or 'imagenet'.")
+            
         self.context_scale = float(resize_shape)/(resize_shape - 2*context_pad)
 
     def context_padding(self, boxes:np.ndarray) -> np.ndarray:  

@@ -179,7 +179,8 @@ class Pascal3DDataset(Dataset):
         for anno in curr_annos:
             img_loader = P.RoILoaderPascal(self.category, curr_id,
                                            self.resize_shape, anno, 
-                                           self.pascal_path + "Images/" + curr_category + "/") 
+                                           self.pascal_path + "Images/" + curr_category + "/",
+                                           "pascal3d") 
             curr_img = img_loader()
 
             curr_dict = P.compose_euler_dict(anno)
@@ -201,7 +202,8 @@ class Pascal3DDataset(Dataset):
         for anno in curr_annos:
             img_loader = P.RoILoaderPascal(self.category, curr_id,
                                            self.resize_shape, anno, 
-                                           self.imagenet_path + "Images/" + curr_category + "/") 
+                                           self.imagenet_path + "Images/" + curr_category + "/",
+                                           "imagenet") 
             curr_img = img_loader()
 
             curr_dict = P.compose_euler_dict(anno)
