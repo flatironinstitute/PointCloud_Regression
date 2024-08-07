@@ -9,6 +9,7 @@ import torch.utils.data
 import torch.utils.tensorboard as tb
 
 import pytorch_lightning as pl
+from pytorch_lightning.profilers import PyTorchProfiler
 import dataclasses
 
 import regression.config as cf
@@ -52,8 +53,8 @@ class RegNetTrainer(pl.LightningModule):
         return self.regnet(x, category_id)
     
     def training_log(self, batch, loss:torch.Tensor, geodesic:torch.Tensor) -> None:
-        self.log('train/frobenius loss respect to g.t.', loss)
-        self.log('train/geodesic distance respect to g.t.', geodesic)
+        self.log("train/frobenius loss respect to g.t.", loss)
+        self.log("train/geodesic distance respect to g.t.", geodesic)
     
     def training_step(self, batch, batch_idx:int) -> torch.Tensor:
         images, annos, categories = batch
@@ -252,12 +253,18 @@ class RegNetDataModule(pl.LightningDataModule):
 
 @hydra.main(config_path=None, config_name='train', version_base='1.1')
 def main(config: cf.RegNetTrainingConfig):
+    tb_logger = pl.loggers.TensorBoardLogger("logs/", name="regnet_profile")
+    profiler = PyTorchProfiler("profiler_output", profile_memory=True, with_stack=True)
+
     logger = logging.getLogger(__name__)
     trainer = pl.Trainer(
         accelerator=config.device, 
         devices=config.num_gpus,
         log_every_n_steps=config.log_every,
-        max_epochs=config.num_epochs)
+        max_epochs=config.num_epochs,
+        logger=tb_logger,  # Attach the logger
+        profiler=profiler  # Attach the profiler
+        )
     
     data_config = config.data
 
@@ -265,6 +272,10 @@ def main(config: cf.RegNetTrainingConfig):
     model = RegNetTrainer(config)
 
     trainer.fit(model, dm)
+
+    # Log all available metrics to debug
+    logger.debug(f"All logged metrics: {trainer.logged_metrics}")
+
 
     if trainer.is_global_zero:
         logger.info(f'Finished training. Final Frobenius: {trainer.logged_metrics["train/frobenius loss respect to g.t."]}')
