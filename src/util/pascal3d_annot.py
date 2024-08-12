@@ -159,6 +159,7 @@ class RoILoaderPascal(RoILoader):
         y2 = min(y2, h-1)
 
         if x1 >= x2 or y1 >= y2:
+            print(self.image_path)
             raise ValueError('[bad box] ' + "h, w=%s, %s   %s  %s" % (h, w, '(%s, %s, %s, %s)' % tuple(bbox), '(%s, %s, %s, %s)' % (x1, y1, x2, y2)))
 
         roi_img = image[y1:y2, x1:x2]
