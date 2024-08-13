@@ -12,6 +12,8 @@ from typing import Dict, Any, Tuple, List
 
 from torchvision import transforms
 
+logger = logging.getLogger(__name__)
+
     
 def read_annotaions(ann_file:str) -> List[Dict[str, Any]]:
     """@args:
@@ -159,14 +161,8 @@ class RoILoaderPascal(RoILoader):
         y2 = min(y2, h-1)
 
         if x1 >= x2 or y1 >= y2:
-            raise ValueError(
-                '[bad box] ' + "h, w=%s, %s  %s  %s with image path: %s" % (
-                    h, w, 
-                    '(%s, %s, %s, %s)' % tuple(bbox), 
-                    '(%s, %s, %s, %s)' % (x1, y1, x2, y2),
-                    self.image_path
-                )
-            )
+            logger.error(f'[bad box] h, w={h}, {w}  ({x1}, {y1}, {x2}, {y2}) with image path: {self.image_path}')
+            return None
 
 
         roi_img = image[y1:y2, x1:x2]
@@ -179,7 +175,7 @@ class RoILoaderPascal(RoILoader):
 
         bbox = self.anno_info.get('bbox')
         if bbox is None:
-            print("Error: 'bbox' key missing in annotation.")
+            logger.error("Error: 'bbox' key missing in annotation.")
 
         return self.crop_roi(image, bbox)
 

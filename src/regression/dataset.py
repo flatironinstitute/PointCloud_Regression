@@ -205,6 +205,8 @@ class Pascal3DDataset(Dataset):
                                            self.imagenet_path + "Images/" + curr_category + "/",
                                            "imagenet") 
             curr_img = img_loader()
+            if curr_img is None:
+                continue
 
             curr_dict = P.compose_euler_dict(anno)
             data_list.append((torch.as_tensor(curr_img, dtype=torch.float32), curr_dict))
