@@ -76,7 +76,7 @@ class PascalDataConfig:
     crop: int = 224
     train_prop: float = 0.9
     limit: Optional[int] = None
-    num_data_workers: int = 16
+    num_data_workers: int = 8
     # options for pascal3D+
     category: List[str] = dataclasses.field(default_factory=lambda:["aeroplane"])
     sample_weights: Dict[str,float] = dataclasses.field(default_factory=lambda: 

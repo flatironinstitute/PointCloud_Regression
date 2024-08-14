@@ -76,10 +76,8 @@ class Regress2DNet(nn.Module):
         if output_option == "s1":
             self.regress_dim = 2
         elif output_option == "adjugate" or output_option == "a-matrix":
-            print("check the option select adj or amat branch")
             self.regress_dim = 10
         elif output_option == "svd":
-            print("check the option select svd branch")
             self.regress_dim = 9
         elif output_option == "six-d":
             self.regress_dim = 6
@@ -95,19 +93,15 @@ class Regress2DNet(nn.Module):
                             torch.nn.LeakyReLU(),
                             torch.nn.Linear(256, self.regress_dim*n_class)
                         )
-        print("check num of classes inside regnet init: ", n_class)
-        print("check regress dim: ", self.regress_dim)
-        print("check output option: ", output_option)
+
         self.mask = P.MaskOut(n_class)
 
     def forward(self, x:torch.Tensor, label:int) -> torch.Tensor:
         """@args:
         label: an integer that represent the class number
         """
-        print("check shape of x before forward: ", x.shape)
         x = self.basic_model(x)
         batch, _ = x.shape
-        print("check shape of x after forward: ", x.shape)
 
         if self.output == "s1":
             x_a = self.mask(self.head_a(x).view(batch, self.n_class, self.regress_dim), label)
@@ -123,7 +117,6 @@ class Regress2DNet(nn.Module):
         
         elif self.output == "svd":
             x = self.hidden_mlp(x)
-            print("check the shape after hidden mlp: ", x.shape)
             svd_vec = self.mask(x.view(batch, self.n_class, self.regress_dim), label)
             return svd_vec
         
